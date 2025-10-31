@@ -4,6 +4,13 @@ import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { join } from 'path';
 import { UsersModule } from './users/users.module';
+import { VacasModule } from './vacas/vacas.module';
+import { TagsModule } from './tags/tags.module';
+import { ZonaModule } from './zona/zona.module';
+import { DispositivosModule } from './dispositivos/dispositivos.module';
+import { DeteccionesModule } from './detecciones/detecciones.module';
+import { PreferenciasModule } from './preferencias/preferencias.module';
+import { EventosModule } from './eventos/eventos.module';
 
 @Module({
   imports: [
@@ -25,6 +32,13 @@ import { UsersModule } from './users/users.module';
       timezone: '-06:00',
     }),
     UsersModule,
+    VacasModule,
+    TagsModule,
+    ZonaModule,
+    DispositivosModule,
+    DeteccionesModule,
+    PreferenciasModule,
+    EventosModule,
   ],
 })
 export class AppModule {}
