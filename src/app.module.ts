@@ -4,13 +4,13 @@ import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { join } from 'path';
 import { UsersModule } from './users/users.module';
-import { VacasModule } from './vacas/vacas.module';
+import { VacasModule } from './cows/cows.module';
 import { TagsModule } from './tags/tags.module';
-import { ZonaModule } from './zona/zona.module';
-import { DispositivosModule } from './dispositivos/dispositivos.module';
-import { DeteccionesModule } from './detecciones/detecciones.module';
-import { PreferenciasModule } from './preferencias/preferencias.module';
-import { EventosModule } from './eventos/eventos.module';
+import { ZonaModule } from './zone/zone.module';
+import { DispositivosModule } from './device_esp32/device_esp32.module';
+import { DeteccionesModule } from './detection/detection.module';
+import { PreferenciasModule } from './preference/preference.module';
+import { EventosModule } from './event/event.module';
 
 @Module({
   imports: [
@@ -37,8 +37,8 @@ import { EventosModule } from './eventos/eventos.module';
     ZonaModule,
     DispositivosModule,
     DeteccionesModule,
-    PreferenciasModule,
-    EventosModule,
+  PreferenciasModule,
+  EventosModule,
   ],
 })
 export class AppModule {}

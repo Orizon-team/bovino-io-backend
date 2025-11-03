@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from './user.entity';
 import { CreateUserInput } from './dto/create-user.input';
+import { UpdateUserInput } from './dto/update-user.input';
 import * as bcrypt from 'bcryptjs';
 
 @Injectable()
@@ -39,5 +40,30 @@ export class UsersService {
     if (!user) return null;
     const matched = await bcrypt.compare(password, user.contrasena);
     return matched ? user : null;
+  }
+
+  async update(id: number, updateData: UpdateUserInput): Promise<User> {
+    const user = await this.findOneById(id);
+
+    if (updateData.correo_electronico && updateData.correo_electronico !== user.correo_electronico) {
+      const existing = await this.findByEmail(updateData.correo_electronico);
+      if (existing && existing.id_usuario !== id) {
+        throw new ConflictException('El correo ya está registrado');
+      }
+    }
+
+    if (updateData.contrasena) {
+      const hashed = await bcrypt.hash(updateData.contrasena, 10);
+      updateData = { ...updateData, contrasena: hashed };
+    }
+
+    const updated = this.usersRepo.merge(user, updateData as Partial<User>);
+    return this.usersRepo.save(updated);
+  }
+
+  async remove(id: number): Promise<boolean> {
+    const res = await this.usersRepo.delete({ id_usuario: id });
+    if (res.affected && res.affected > 0) return true;
+    throw new NotFoundException('Usuario no encontrado');
   }
 }
