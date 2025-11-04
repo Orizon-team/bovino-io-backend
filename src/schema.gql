@@ -2,10 +2,97 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
+input CreateDeteccionInput {
+  fecha: DateTime
+  id_device: Int!
+  id_tag: Int!
+  intensidad_senal: Float
+}
+
+input CreateDispositivoInput {
+  battery_level: Float
+  id_zona: Int
+  status: String
+  tipo: String
+  ubicacion: String
+  ultima_actualizacion: DateTime
+}
+
+input CreateEventoInput {
+  Event_Description: String
+  Event_Type: String!
+  id_cow: Int
+  id_device: Int
+  id_tag: Int
+}
+
+input CreatePreferenciaInput {
+  id_cow: Int!
+  id_zone: Int!
+  last_visit: DateTime
+  visit_count: Int
+}
+
+input CreateTagInput {
+  id_vaca: Int
+  nivel_de_bateria: Float
+  status: String
+  ubicacion_actual: String
+  ultima_transmision: String
+}
+
 input CreateUserInput {
   contrasena: String!
   correo_electronico: String!
   nombre: String
+}
+
+input CreateVacaInput {
+  comida_preferida: String
+  id_usuario: Int
+  imagen: String
+  nombre: String
+  tag_id: String!
+}
+
+input CreateZoneInput {
+  description: String
+  location: String
+  name: String!
+}
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
+type Deteccion {
+  dispositivo: DispositivoESP32!
+  fecha: DateTime
+  id: Int!
+  intensidad_senal: Float
+  tag: Tag!
+}
+
+type DispositivoESP32 {
+  id: Int!
+  nivel_de_bateria: Float
+  status: String
+  tipo: String
+  ubicacion: String
+  ultima_actualizacion: DateTime
+  zona: Zone
+}
+
+type Evento {
+  Codigo_Evento: Int!
+  Descripcion_Evento: String
+  Tipo_Evento: String!
+  dispositivo: DispositivoESP32
+  fecha: String
+  hora: String
+  tag: Tag
+  vaca: Vaca
 }
 
 input LoginUserInput {
@@ -14,17 +101,79 @@ input LoginUserInput {
 }
 
 type Mutation {
+  createDeteccion(input: CreateDeteccionInput!): Deteccion!
+  createDispositivo(input: CreateDispositivoInput!): DispositivoESP32!
+  createEvento(input: CreateEventoInput!): Evento!
+  createPreferencia(input: CreatePreferenciaInput!): Preferencia!
+  createTag(input: CreateTagInput!): Tag!
   createUser(input: CreateUserInput!): User!
+  createVaca(input: CreateVacaInput!): Vaca!
+  createZone(input: CreateZoneInput!): Zone!
+  deleteUser(id: Int!): Boolean!
   login(input: LoginUserInput!): User
+  updateUser(id: Int!, input: UpdateUserInput!): User!
+}
+
+type Preferencia {
+  id: Int!
+  numero_de_visitas: Int!
+  ultima_visita: DateTime
+  vaca: Vaca!
+  zona: Zone!
 }
 
 type Query {
+  deteccion(id: Int!): Deteccion!
+  detecciones: [Deteccion!]!
+  dispositivo(id: Int!): DispositivoESP32!
+  dispositivos: [DispositivoESP32!]!
+  evento(id: Int!): Evento
+  eventos: [Evento!]!
+  preferencia(id: Int!): Preferencia!
+  preferencias: [Preferencia!]!
+  tag(id: Int!): Tag!
+  tags: [Tag!]!
   user(id: Int!): User!
   users: [User!]!
+  vaca(id: Int!): Vaca!
+  vacas: [Vaca!]!
+  zone(id: Int!): Zone!
+  zones: [Zone!]!
+}
+
+type Tag {
+  id: Int!
+  nivel_de_bateria: Float
+  status: String
+  ubicacion_actual: String
+  ultima_transmision: DateTime
+  vaca: Vaca
+}
+
+input UpdateUserInput {
+  contrasena: String
+  correo_electronico: String
+  nombre: String
 }
 
 type User {
   correo_electronico: String!
   id_usuario: Int!
   nombre: String
+}
+
+type Vaca {
+  comida_preferida: String
+  id: Int!
+  imagen: String
+  nombre: String
+  tag_id: String!
+  usuario: User
+}
+
+type Zone {
+  description: String
+  id: Int!
+  location: String
+  name: String!
 }
