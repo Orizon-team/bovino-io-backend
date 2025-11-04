@@ -20,11 +20,11 @@ export class Evento {
   Descripcion_Evento?: string;
 
   @Field({ nullable: true })
-  @Column({ type: 'date', nullable: true, default: () => 'CURRENT_DATE', name: 'date' })
+  @Column({ type: 'date', nullable: true, name: 'date' })
   fecha?: string;
 
   @Field({ nullable: true })
-  @Column({ type: 'time', nullable: true, default: () => 'CURRENT_TIME', name: 'time' })
+  @Column({ type: 'time', nullable: true, name: 'time' })
   hora?: string;
 
   @Field(() => Vaca, { nullable: true })
