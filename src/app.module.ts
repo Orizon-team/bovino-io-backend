@@ -4,6 +4,8 @@ import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { join } from 'path';
 import { UsersModule } from './users/users.module';
+import { AppController } from './app.controller';
+import { AppService } from './app.service';
 import { VacasModule } from './cows/cows.module';
 import { TagsModule } from './tags/tags.module';
 import { ZoneModule } from './zone/zone.module';
@@ -40,5 +42,7 @@ import { EventosModule } from './event/event.module';
   PreferenciasModule,
   EventosModule,
   ],
+  controllers: [AppController],
+  providers: [AppService],
 })
 export class AppModule {}
