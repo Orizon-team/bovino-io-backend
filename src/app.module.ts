@@ -6,7 +6,7 @@ import { join } from 'path';
 import { UsersModule } from './users/users.module';
 import { VacasModule } from './cows/cows.module';
 import { TagsModule } from './tags/tags.module';
-import { ZonaModule } from './zone/zone.module';
+import { ZoneModule } from './zone/zone.module';
 import { DispositivosModule } from './device_esp32/device_esp32.module';
 import { DeteccionesModule } from './detection/detection.module';
 import { PreferenciasModule } from './preference/preference.module';
@@ -33,8 +33,8 @@ import { EventosModule } from './event/event.module';
     }),
     UsersModule,
     VacasModule,
-    TagsModule,
-    ZonaModule,
+  TagsModule,
+  ZoneModule,
     DispositivosModule,
     DeteccionesModule,
   PreferenciasModule,

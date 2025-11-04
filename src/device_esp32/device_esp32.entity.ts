@@ -1,6 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
 import { ObjectType, Field, Int, Float } from '@nestjs/graphql';
-import { Zona } from '../zone/zone.entity';
+import { Zone } from '../zone/zone.entity';
 
 @ObjectType()
 @Entity({ name: 'Device_ESP32' })
@@ -9,10 +9,10 @@ export class DispositivoESP32 {
   @PrimaryGeneratedColumn({ name: 'id' })
   id: number;
 
-  @Field(() => Zona, { nullable: true })
-  @ManyToOne(() => Zona, { nullable: true, onUpdate: 'CASCADE', onDelete: 'SET NULL' })
+  @Field(() => Zone, { nullable: true })
+  @ManyToOne(() => Zone, { nullable: true, onUpdate: 'CASCADE', onDelete: 'SET NULL' })
   @JoinColumn({ name: 'id_zone' })
-  zona?: Zona;
+  zona?: Zone;
 
   @Field({ nullable: true })
   @Column({ type: 'enum', enum: ['primary', 'child'], default: 'primary', name: 'type' })

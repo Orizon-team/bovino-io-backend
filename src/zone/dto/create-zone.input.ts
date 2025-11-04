@@ -2,19 +2,19 @@ import { InputType, Field } from '@nestjs/graphql';
 import { IsOptional, IsString, Length } from 'class-validator';
 
 @InputType()
-export class CreateZonaInput {
+export class CreateZoneInput {
   @Field()
   @IsString()
   @Length(1, 100)
-  nombre: string;
+  name: string;
 
   @Field({ nullable: true })
   @IsOptional()
   @IsString()
-  descripcion?: string;
+  description?: string;
 
   @Field({ nullable: true })
   @IsOptional()
   @IsString()
-  ubicacion?: string;
+  location?: string;
 }

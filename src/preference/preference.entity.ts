@@ -1,7 +1,7 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
 import { ObjectType, Field, Int } from '@nestjs/graphql';
 import { Vaca } from '../cows/cow.entity';
-import { Zona } from '../zone/zone.entity';
+import { Zone } from '../zone/zone.entity';
 
 @ObjectType()
 @Entity({ name: 'Preference' })
@@ -15,10 +15,10 @@ export class Preferencia {
   @JoinColumn({ name: 'id_cow' })
   vaca: Vaca;
 
-  @Field(() => Zona)
-  @ManyToOne(() => Zona, { onUpdate: 'CASCADE', onDelete: 'CASCADE' })
+  @Field(() => Zone)
+  @ManyToOne(() => Zone, { onUpdate: 'CASCADE', onDelete: 'CASCADE' })
   @JoinColumn({ name: 'id_zone' })
-  zona: Zona;
+  zona: Zone;
 
   @Field(() => Int)
   @Column({ type: 'int', default: 0, name: 'visit_count' })

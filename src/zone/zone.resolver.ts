@@ -1,13 +1,24 @@
-import { Resolver, Query } from '@nestjs/graphql';
-import { ZonaService } from './zone.service';
-import { Zona } from './zone.entity';
+import { Resolver, Query, Mutation, Args, Int } from '@nestjs/graphql';
+import { ZoneService } from './zone.service';
+import { Zone } from './zone.entity';
+import { CreateZoneInput } from './dto/create-zone.input';
 
-@Resolver(() => Zona)
-export class ZonaResolver {
-  constructor(private zonaService: ZonaService) {}
+@Resolver(() => Zone)
+export class ZoneResolver {
+  constructor(private zoneService: ZoneService) {}
 
-  @Query(() => [Zona])
-  zonas() {
-    return this.zonaService.findAll();
+  @Query(() => [Zone])
+  zones() {
+    return this.zoneService.findAll();
+  }
+
+  @Query(() => Zone)
+  zone(@Args('id', { type: () => Int }) id: number) {
+    return this.zoneService.findOneById(id);
+  }
+
+  @Mutation(() => Zone)
+  createZone(@Args('input') input: CreateZoneInput) {
+    return this.zoneService.create(input);
   }
 }
