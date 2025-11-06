@@ -1,8 +1,9 @@
-import multer from 'multer';
 import { Request } from 'express';
 import type { File as MulterFile } from 'multer';
 import { v2 as cloudinary } from 'cloudinary';
 import { CloudinaryStorage } from 'multer-storage-cloudinary';
+// Use require to avoid runtime default-import interop problems with multer in some Node environments
+const multer = require('multer');
 
 // Configure Cloudinary using environment variables
 cloudinary.config({
@@ -41,7 +42,7 @@ const storage = new CloudinaryStorage({
   },
 });
 
-const upload = multer({ storage });
+const upload = (multer as any)({ storage });
 
 export { cloudinary, storage, upload };
 
