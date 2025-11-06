@@ -32,11 +32,10 @@ const storage = new CloudinaryStorage({
     return {
       folder,
       resource_type: 'image',
-      format: 'auto',
       public_id: publicId,
+      // Use fetch_format and quality in transformation to let Cloudinary choose best format
       transformation: [
-        { width: 800, height: 600, crop: 'limit' },
-        { quality: 'auto' },
+        { width: 800, height: 600, crop: 'limit', fetch_format: 'auto', quality: 'auto' },
       ],
     } as any;
   },
