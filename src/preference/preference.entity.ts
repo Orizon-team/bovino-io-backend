@@ -10,21 +10,21 @@ export class Preferencia {
   @PrimaryGeneratedColumn({ name: 'id' })
   id: number;
 
-  @Field(() => Vaca)
-  @ManyToOne(() => Vaca, { onUpdate: 'CASCADE', onDelete: 'CASCADE' })
+  @Field(() => Vaca, { nullable: true })
+  @ManyToOne(() => Vaca, { onUpdate: 'CASCADE', onDelete: 'CASCADE', nullable: true })
   @JoinColumn({ name: 'id_cow' })
-  vaca: Vaca;
+  cow?: Vaca;
 
-  @Field(() => Zone)
-  @ManyToOne(() => Zone, { onUpdate: 'CASCADE', onDelete: 'CASCADE' })
+  @Field(() => Zone, { nullable: true })
+  @ManyToOne(() => Zone, { onUpdate: 'CASCADE', onDelete: 'CASCADE', nullable: true })
   @JoinColumn({ name: 'id_zone' })
-  zona: Zone;
+  zone?: Zone;
 
   @Field(() => Int)
   @Column({ type: 'int', default: 0, name: 'visit_count' })
-  numero_de_visitas: number;
+  visit_count: number;
 
   @Field({ nullable: true })
   @Column({ type: 'datetime', nullable: true, name: 'last_visit' })
-  ultima_visita?: Date;
+  last_visit?: Date;
 }

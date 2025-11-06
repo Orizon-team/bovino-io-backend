@@ -9,24 +9,27 @@ export class Tag {
   @PrimaryGeneratedColumn({ name: 'id' })
   id: number;
 
-  @Field(() => Float, { nullable: true })
-  @Column({ type: 'float', nullable: true, name: 'battery_level' })
-  nivel_de_bateria?: number;
+  @Field(() => String)
+  @Column({ type: 'bigint', name: 'id_tag' })
+  id_tag: string;
 
-  @Field(() => Vaca, { nullable: true })
-  @ManyToOne(() => Vaca, { nullable: true, onUpdate: 'CASCADE', onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'id_cow' })
-  vaca?: Vaca;
+  @Field({ nullable: true })
+  @Column({ type: 'varchar', length: 17, name: 'mac_address' })
+  mac_address?: string;
+
+  @Field(() => Number, { nullable: true })
+  @Column({ type: 'float', nullable: true, default: 100, name: 'battery_level' })
+  battery_level?: number;
 
   @Field({ nullable: true })
   @Column({ type: 'datetime', nullable: true, name: 'last_transmission' })
-  ultima_transmision?: Date;
+  last_transmission?: Date;
 
   @Field({ nullable: true })
-  @Column({ type: 'enum', enum: ['active', 'inactive', 'low_battery', 'lost'], default: 'active' })
+  @Column({ type: 'enum', enum: ['active', 'inactive', 'error'], default: 'active', name: 'status' })
   status?: string;
 
   @Field({ nullable: true })
-  @Column({ type: 'varchar', length: 100, nullable: true, name: 'current_location' })
-  ubicacion_actual?: string;
+  @Column({ type: 'varchar', length: 255, nullable: true, name: 'current_location' })
+  current_location?: string;
 }

@@ -27,6 +27,10 @@ export class TagsService {
   }
 
   async findByVaca(id_vaca: number): Promise<Tag | null> {
-    return this.tagsRepo.findOne({ where: { vaca: { id: id_vaca } }, relations: ['vaca'] });
+    // Find tag by joining with Cows table where cow.tag_id = tag.id
+    return this.tagsRepo.createQueryBuilder('tag')
+      .innerJoin('Cows', 'cow', 'cow.tag_id = tag.id')
+      .where('cow.id = :id_vaca', { id_vaca })
+      .getOne();
   }
 }

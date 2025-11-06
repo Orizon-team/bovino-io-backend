@@ -12,25 +12,25 @@ export class DispositivoESP32 {
   @Field(() => Zone, { nullable: true })
   @ManyToOne(() => Zone, { nullable: true, onUpdate: 'CASCADE', onDelete: 'SET NULL' })
   @JoinColumn({ name: 'id_zone' })
-  zona?: Zone;
+  zone?: Zone;
 
   @Field({ nullable: true })
   @Column({ type: 'enum', enum: ['primary', 'child'], default: 'primary', name: 'type' })
-  tipo?: string;
+  type?: string;
 
   @Field({ nullable: true })
-  @Column({ type: 'varchar', length: 255, nullable: true })
-  ubicacion?: string;
+  @Column({ type: 'varchar', length: 255, nullable: true, name: 'location' })
+  location?: string;
 
   @Field({ nullable: true })
   @Column({ type: 'datetime', nullable: true, name: 'last_update' })
-  ultima_actualizacion?: Date;
+  last_update?: Date;
 
   @Field(() => Float, { nullable: true })
   @Column({ type: 'float', nullable: true, name: 'battery_level' })
-  nivel_de_bateria?: number;
+  battery_level?: number;
 
   @Field({ nullable: true })
-  @Column({ type: 'enum', enum: ['active', 'inactive', 'error'], default: 'active' })
+  @Column({ type: 'enum', enum: ['active', 'inactive', 'error'], default: 'active', name: 'status' })
   status?: string;
 }

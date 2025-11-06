@@ -12,25 +12,31 @@ export class VacasService {
   ) {}
 
   async create(input: CreateVacaInput): Promise<Vaca> {
-    const existing = await this.vacasRepo.findOne({ where: { tag_id: input.tag_id } });
-    if (existing) throw new ConflictException('Tag ya registrada');
-    // If an image URL is provided, encrypt it before saving
-    const payload: Partial<Vaca> = { ...input } as Partial<Vaca>;
-    if (payload.imagen) {
-      payload.imagen = encryptText(payload.imagen);
+    // Ensure the Tag exists
+    const tagRepo = this.vacasRepo.manager.getRepository('Tag');
+    const tag = await tagRepo.findOne({ where: { id: input.tag_id } });
+    if (!tag) throw new NotFoundException('Tag no encontrado');
+
+    // Prepare payload
+    const payload: Partial<Vaca> = { ...input } as any;
+    // attach relation
+    (payload as any).tag = { id: input.tag_id };
+    if ((payload as any).imagen) {
+      (payload as any).image = encryptText((payload as any).imagen);
+      delete (payload as any).imagen;
     }
 
-    const v = this.vacasRepo.create(payload);
+    const v = this.vacasRepo.create(payload as Partial<Vaca>);
     const saved = await this.vacasRepo.save(v);
-    // Return with decrypted imagen for API consumers
-    if (saved.imagen) saved.imagen = decryptText(saved.imagen);
+    // decrypt image for API
+    if (saved.image) saved.image = decryptText(saved.image);
     return saved;
   }
 
   async findAll(): Promise<Vaca[]> {
     const list = await this.vacasRepo.find();
     return list.map((v) => {
-      if (v.imagen) v.imagen = decryptText(v.imagen);
+      if (v.image) v.image = decryptText(v.image);
       return v;
     });
   }
@@ -38,14 +44,14 @@ export class VacasService {
   async findOneById(id: number): Promise<Vaca> {
     const v = await this.vacasRepo.findOne({ where: { id } });
     if (!v) throw new NotFoundException('Vaca no encontrada');
-    if (v.imagen) v.imagen = decryptText(v.imagen);
+    if (v.image) v.image = decryptText(v.image);
     return v;
   }
 
-  async findByTag(tag: string): Promise<Vaca | null> {
-    const v = await this.vacasRepo.findOne({ where: { tag_id: tag } });
+  async findByTag(tag: number): Promise<Vaca | null> {
+    const v = await this.vacasRepo.findOne({ where: { tag: { id: tag } }, relations: ['tag'] });
     if (!v) return null;
-    if (v.imagen) v.imagen = decryptText(v.imagen);
+    if (v.image) v.image = decryptText(v.image);
     return v;
   }
 }

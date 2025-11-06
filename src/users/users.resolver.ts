@@ -35,7 +35,7 @@ export class UsersResolver {
   // Ejemplo simple de login; aquí podrías devolver un JWT
   @Mutation(() => User, { nullable: true })
   async login(@Args('input') input: LoginUserInput) {
-    const user = await this.usersService.validateUser(input.correo_electronico, input.contrasena);
+    const user = await this.usersService.validateUser(input.email, input.password);
     if (!user) return null;
     // en lugar de retornar null, suele devolverse un token JWT
     return user;

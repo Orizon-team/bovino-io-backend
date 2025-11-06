@@ -14,10 +14,10 @@ export class EventosService {
   }
 
   async findAll(): Promise<Evento[]> {
-    return this.repo.find({ relations: ['vaca', 'tag', 'dispositivo'] });
+    return this.repo.find({ relations: ['cow', 'tag', 'device'] });
   }
 
   async findOneById(id: number): Promise<Evento | null> {
-    return this.repo.findOne({ where: { Codigo_Evento: id }, relations: ['vaca', 'tag', 'dispositivo'] });
+    return this.repo.findOne({ where: { id_event: id }, relations: ['cow', 'tag', 'device'] });
   }
 }

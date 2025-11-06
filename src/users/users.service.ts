@@ -13,11 +13,11 @@ export class UsersService {
   ) {}
 
   async create(createUserInput: CreateUserInput): Promise<User> {
-    const existing = await this.usersRepo.findOne({ where: { correo_electronico: createUserInput.correo_electronico } });
+    const existing = await this.usersRepo.findOne({ where: { email: createUserInput.email } });
     if (existing) throw new ConflictException('El correo ya está registrado');
 
-    const hashed = await bcrypt.hash(createUserInput.contrasena, 10);
-    const user = this.usersRepo.create({ ...createUserInput, contrasena: hashed });
+    const hashed = await bcrypt.hash(createUserInput.password, 10);
+    const user = this.usersRepo.create({ ...createUserInput, password: hashed });
     return this.usersRepo.save(user);
   }
 
@@ -26,35 +26,35 @@ export class UsersService {
   }
 
   async findOneById(id: number): Promise<User> {
-    const u = await this.usersRepo.findOne({ where: { id_usuario: id }});
+    const u = await this.usersRepo.findOne({ where: { id_user: id }});
     if (!u) throw new NotFoundException('Usuario no encontrado');
     return u;
   }
 
   async findByEmail(email: string): Promise<User | null> {
-    return this.usersRepo.findOne({ where: { correo_electronico: email }});
+    return this.usersRepo.findOne({ where: { email: email }});
   }
 
   async validateUser(email: string, password: string): Promise<User | null> {
     const user = await this.findByEmail(email);
     if (!user) return null;
-    const matched = await bcrypt.compare(password, user.contrasena);
+    const matched = await bcrypt.compare(password, user.password);
     return matched ? user : null;
   }
 
   async update(id: number, updateData: UpdateUserInput): Promise<User> {
     const user = await this.findOneById(id);
 
-    if (updateData.correo_electronico && updateData.correo_electronico !== user.correo_electronico) {
-      const existing = await this.findByEmail(updateData.correo_electronico);
-      if (existing && existing.id_usuario !== id) {
+    if (updateData.email && updateData.email !== user.email) {
+      const existing = await this.findByEmail(updateData.email);
+      if (existing && existing.id_user !== id) {
         throw new ConflictException('El correo ya está registrado');
       }
     }
 
-    if (updateData.contrasena) {
-      const hashed = await bcrypt.hash(updateData.contrasena, 10);
-      updateData = { ...updateData, contrasena: hashed };
+    if (updateData.password) {
+      const hashed = await bcrypt.hash(updateData.password, 10);
+      updateData = { ...updateData, password: hashed };
     }
 
     const updated = this.usersRepo.merge(user, updateData as Partial<User>);
@@ -62,7 +62,7 @@ export class UsersService {
   }
 
   async remove(id: number): Promise<boolean> {
-    const res = await this.usersRepo.delete({ id_usuario: id });
+    const res = await this.usersRepo.delete({ id_user: id });
     if (res.affected && res.affected > 0) return true;
     throw new NotFoundException('Usuario no encontrado');
   }

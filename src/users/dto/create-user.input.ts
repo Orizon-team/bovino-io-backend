@@ -4,13 +4,13 @@ import { IsEmail, MinLength } from 'class-validator';
 @InputType()
 export class CreateUserInput {
   @Field({ nullable: true })
-  nombre?: string;
+  name?: string;
 
   @Field()
   @IsEmail()
-  correo_electronico: string;
+  email: string;
 
   @Field()
   @MinLength(6)
-  contrasena: string;
+  password: string;
 }

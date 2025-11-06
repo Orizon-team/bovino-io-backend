@@ -4,19 +4,19 @@ import { ObjectType, Field, Int } from '@nestjs/graphql';
 @ObjectType() // para GraphQL
 @Entity({ name: 'Users' }) // mapped to English table name
 export class User {
-@Field(() => Int)
+  @Field(() => Int)
   @PrimaryGeneratedColumn({ name: 'id_user' })
-  id_usuario: number; // DB column is id_user, property kept for compatibility
+  id_user: number;
 
   @Field(() => String, { nullable: true })
   @Column({ type: 'varchar', length: 100, nullable: true, name: 'name' })
-  nombre?: string;
+  name?: string;
 
-@Field(() => String)
+  @Field(() => String)
   @Column({ type: 'varchar', length: 100, name: 'email', unique: true })
-  correo_electronico: string;
+  email: string;
 
-  // NO exponer contrasena en GraphQL (omitimos @Field)
+  // password not exposed in GraphQL
   @Column({ type: 'varchar', length: 255, name: 'password' })
-  contrasena: string;
+  password: string;
 }

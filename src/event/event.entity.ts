@@ -8,29 +8,33 @@ import { DispositivoESP32 } from '../device_esp32/device_esp32.entity';
 @Entity({ name: 'Event' })
 export class Evento {
   @Field(() => Int)
-  @PrimaryGeneratedColumn({ name: 'Event_Code' })
-  Codigo_Evento: number;
+  @PrimaryGeneratedColumn({ name: 'id_event' })
+  id_event: number;
 
-  @Field()
-  @Column({ type: 'varchar', length: 100, name: 'Event_Type' })
-  Tipo_Evento: string;
+  @Field({ nullable: true })
+  @Column({ type: 'varchar', length: 100, nullable: true, name: 'Event_Code' })
+  Event_Code?: string;
+
+  @Field({ nullable: true })
+  @Column({ type: 'varchar', length: 100, nullable: true, name: 'Event_Type' })
+  Event_Type?: string;
 
   @Field({ nullable: true })
   @Column({ type: 'text', nullable: true, name: 'Event_Description' })
-  Descripcion_Evento?: string;
-
-  @Field({ nullable: true })
-  @Column({ type: 'date', nullable: true, name: 'date' })
-  fecha?: string;
+  Event_Description?: string;
 
   @Field({ nullable: true })
   @Column({ type: 'time', nullable: true, name: 'time' })
-  hora?: string;
+  time?: string;
+
+  @Field({ nullable: true })
+  @Column({ type: 'date', nullable: true, name: 'date' })
+  date?: string;
 
   @Field(() => Vaca, { nullable: true })
   @ManyToOne(() => Vaca, { nullable: true, onUpdate: 'CASCADE', onDelete: 'SET NULL' })
   @JoinColumn({ name: 'id_cow' })
-  vaca?: Vaca;
+  cow?: Vaca;
 
   @Field(() => Tag, { nullable: true })
   @ManyToOne(() => Tag, { nullable: true, onUpdate: 'CASCADE', onDelete: 'SET NULL' })
@@ -40,5 +44,5 @@ export class Evento {
   @Field(() => DispositivoESP32, { nullable: true })
   @ManyToOne(() => DispositivoESP32, { nullable: true, onUpdate: 'CASCADE', onDelete: 'SET NULL' })
   @JoinColumn({ name: 'id_device' })
-  dispositivo?: DispositivoESP32;
+  device?: DispositivoESP32;
 }

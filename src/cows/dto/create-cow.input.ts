@@ -6,12 +6,11 @@ export class CreateVacaInput {
   @Field()
   @IsString()
   @Length(1, 100)
-  tag_id: string;
+  tag_id: number;
 
-  @Field({ nullable: true })
-  @IsOptional()
+  @Field()
   @IsString()
-  nombre?: string;
+  nombre: string;
 
   @Field(() => Int, { nullable: true })
   @IsOptional()
