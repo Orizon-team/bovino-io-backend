@@ -12,19 +12,37 @@ export class VacasService {
   ) {}
 
   async create(input: CreateVacaInput): Promise<Vaca> {
-    // Ensure the Tag exists
+    // Normalize input fields (accept both GraphQL spanish fields and REST english fields)
+    const raw: any = input as any;
+    const payload: any = {};
+
+    // tag id: accept tag_id (PK) or tag object
+    const tagId = raw.tag_id ?? raw.tag ?? (raw.tag && raw.tag.id);
+    // name: accept name or nombre
+    payload.name = raw.name ?? raw.nombre;
+    // id_user
+    payload.id_user = raw.id_user ?? raw.id_usuario;
+    // favorite_food
+    payload.favorite_food = raw.favorite_food ?? raw.comida_preferida;
+    // image: accept uploaded 'imagen' or 'image'
+    if (raw.imagen) payload.image = encryptText(raw.imagen);
+    else if (raw.image) payload.image = encryptText(raw.image);
+
+    // Validate required fields
+    if (!tagId) throw new ConflictException('tag_id is required');
+    if (!payload.name) throw new ConflictException('name is required');
+
+    // Ensure the Tag exists (try PK first, then id_tag)
     const tagRepo = this.vacasRepo.manager.getRepository('Tag');
-    const tag = await tagRepo.findOne({ where: { id: input.tag_id } });
+    let tag = await tagRepo.findOne({ where: { id: Number(tagId) } });
+    if (!tag) {
+      // try matching id_tag (string)
+      tag = await tagRepo.findOne({ where: { id_tag: String(tagId) } });
+    }
     if (!tag) throw new NotFoundException('Tag no encontrado');
 
-    // Prepare payload
-    const payload: Partial<Vaca> = { ...input } as any;
     // attach relation
-    (payload as any).tag = { id: input.tag_id };
-    if ((payload as any).imagen) {
-      (payload as any).image = encryptText((payload as any).imagen);
-      delete (payload as any).imagen;
-    }
+    payload.tag = { id: tag.id };
 
     const v = this.vacasRepo.create(payload as Partial<Vaca>);
     const saved = await this.vacasRepo.save(v);
