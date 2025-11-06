@@ -3,20 +3,26 @@ import { IsOptional, IsString, IsNumber } from 'class-validator';
 
 @InputType()
 export class CreateTagInput {
-  @Field(() => Float, { nullable: true })
-  @IsOptional()
-  @IsNumber()
-  nivel_de_bateria?: number;
-
-  @Field(() => Int, { nullable: true })
-  @IsOptional()
-  id_vaca?: number;
-
-  // Usamos string ISO para la fecha/hora
   @Field({ nullable: true })
   @IsOptional()
   @IsString()
-  ultima_transmision?: string;
+  id_tag?: string;
+
+  @Field({ nullable: true })
+  @IsOptional()
+  @IsString()
+  mac_address?: string;
+
+  @Field(() => Float, { nullable: true })
+  @IsOptional()
+  @IsNumber()
+  battery_level?: number;
+
+  // ISO date/time string
+  @Field({ nullable: true })
+  @IsOptional()
+  @IsString()
+  last_transmission?: string;
 
   @Field({ nullable: true })
   @IsOptional()
@@ -26,5 +32,5 @@ export class CreateTagInput {
   @Field({ nullable: true })
   @IsOptional()
   @IsString()
-  ubicacion_actual?: string;
+  current_location?: string;
 }
