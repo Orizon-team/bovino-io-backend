@@ -11,7 +11,34 @@ export class DispositivosService {
   ) {}
 
   async create(input: CreateDispositivoInput): Promise<DispositivoESP32> {
-    const d = this.repo.create(input as Partial<DispositivoESP32>);
+    // Map Spanish input fields to entity properties so they persist correctly.
+    const payload: Partial<DispositivoESP32> = {};
+
+    if (input.battery_level !== undefined) payload.battery_level = input.battery_level as number;
+    if (input.status !== undefined) payload.status = input.status as string;
+
+    // map spanish input names to entity column names
+    if ((input as any).tipo !== undefined) {
+      // entity.column 'type' is an enum ['primary','child'] — only set if value is valid
+      const v = (input as any).tipo as string;
+      const allowed = ['primary', 'child'];
+      if (allowed.includes(v)) payload.type = v;
+      // otherwise skip setting `type` so DB default is used. If you need to store
+      // device model like 'esp32', consider adding a new column or extending the enum.
+    }
+    if ((input as any).ubicacion !== undefined) payload.location = (input as any).ubicacion as string;
+    if ((input as any).ultima_actualizacion !== undefined) {
+      const dte = (input as any).ultima_actualizacion;
+      payload.last_update = dte instanceof Date ? dte : new Date(dte);
+    }
+
+    // associate zone by id if provided
+    if ((input as any).id_zona !== undefined) {
+      // provide a minimal relation object with id so TypeORM sets the FK
+      payload.zone = { id: (input as any).id_zona } as any;
+    }
+
+    const d = this.repo.create(payload as Partial<DispositivoESP32>);
     return this.repo.save(d);
   }
 
