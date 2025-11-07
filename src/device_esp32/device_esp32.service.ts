@@ -39,7 +39,13 @@ export class DispositivosService {
     }
 
     const d = this.repo.create(payload as Partial<DispositivoESP32>);
-    return this.repo.save(d);
+    const saved = await this.repo.save(d);
+
+    // Return the device with relations loaded so GraphQL can resolve nested fields
+    // (e.g., zone.name which is non-nullable). If the relation doesn't exist, it
+    // will be null and GraphQL will return null for `zone`.
+    const withRelations = await this.repo.findOne({ where: { id: saved.id }, relations: ['zone'] });
+    return withRelations ?? saved;
   }
 
   async findAll(): Promise<DispositivoESP32[]> {
