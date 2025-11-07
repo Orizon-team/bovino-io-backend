@@ -33,4 +33,12 @@ export class TagsService {
       .where('cow.id = :id_vaca', { id_vaca })
       .getOne();
   }
+
+  async findByIdTag(id_tag: string): Promise<Tag | null> {
+    return this.tagsRepo.findOne({ where: { id_tag } });
+  }
+
+  async saveTag(tag: Tag): Promise<Tag> {
+    return this.tagsRepo.save(tag);
+  }
 }

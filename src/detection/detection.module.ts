@@ -3,14 +3,14 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Deteccion } from './detection.entity';
 import { DeteccionesService } from './detection.service';
 import { DeteccionesResolver } from './detection.resolver';
-import { DeteccionesController } from './detection.controller';
-import { Tag } from '../tags/tag.entity';
-import { DispositivoESP32 } from '../device_esp32/device_esp32.entity';
-import { Zone } from '../zone/zone.entity';
+import { DetectionsController } from './detection.controller';
+import { TagsModule } from '../tags/tags.module';
+import { DispositivosModule } from '../device_esp32/device_esp32.module';
+import { ZoneModule } from '../zone/zone.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Deteccion, Tag, DispositivoESP32, Zone])],
-  controllers: [DeteccionesController],
+  imports: [TypeOrmModule.forFeature([Deteccion]), TagsModule, DispositivosModule, ZoneModule],
+  controllers: [DetectionsController],
   providers: [DeteccionesService, DeteccionesResolver],
   exports: [DeteccionesService],
 })

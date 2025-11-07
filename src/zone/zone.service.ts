@@ -22,4 +22,8 @@ export class ZoneService {
     if (!z) throw new NotFoundException('Zone not found');
     return z;
   }
+
+  async findByName(name: string): Promise<Zone | null> {
+    return this.repo.findOne({ where: { name } });
+  }
 }
