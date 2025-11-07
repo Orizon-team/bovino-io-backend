@@ -14,7 +14,7 @@ export class Tag {
   id_tag: string;
 
   @Field({ nullable: true })
-  @Column({ type: 'varchar', length: 17, name: 'mac_address' })
+  @Column({ type: 'varchar', length: 17, name: 'mac_address', nullable: true })
   mac_address?: string;
 
   @Field(() => Number, { nullable: true })
