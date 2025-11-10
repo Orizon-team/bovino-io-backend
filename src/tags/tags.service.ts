@@ -41,4 +41,10 @@ export class TagsService {
   async saveTag(tag: Tag): Promise<Tag> {
     return this.tagsRepo.save(tag);
   }
+
+  async update(id: number, input: Partial<Tag>): Promise<Tag> {
+    const tag = await this.findOneById(id);
+    const merged = this.tagsRepo.merge(tag, input as Partial<Tag>);
+    return this.tagsRepo.save(merged);
+  }
 }

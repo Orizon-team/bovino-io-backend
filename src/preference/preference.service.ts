@@ -22,4 +22,16 @@ export class PreferenciasService {
     if (!p) throw new NotFoundException('Preferencia no encontrada');
     return p;
   }
+
+  async update(id: number, input: Partial<Preferencia> & any): Promise<Preferencia> {
+    const pref = await this.findOneById(id);
+
+  if (input.id_cow !== undefined) pref.cow = input.id_cow === null ? undefined as any : ({ id: input.id_cow } as any);
+  if (input.id_zone !== undefined) pref.zone = input.id_zone === null ? undefined as any : ({ id: input.id_zone } as any);
+  if (input.visit_count !== undefined) pref.visit_count = input.visit_count;
+  if (input.last_visit !== undefined) pref.last_visit = input.last_visit instanceof Date ? input.last_visit : new Date(input.last_visit);
+
+    const saved = await this.repo.save(pref);
+    return this.findOneById(saved.id);
+  }
 }

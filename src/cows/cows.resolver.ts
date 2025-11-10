@@ -2,6 +2,7 @@ import { Resolver, Query, Mutation, Args, Int } from '@nestjs/graphql';
 import { VacasService } from './cows.service';
 import { Vaca } from './cow.entity';
 import { CreateVacaInput } from './dto/create-cow.input';
+import { UpdateVacaInput } from './dto/update-cow.input';
 
 @Resolver(() => Vaca)
 export class VacasResolver {
@@ -20,5 +21,10 @@ export class VacasResolver {
   @Mutation(() => Vaca)
   createVaca(@Args('input') input: CreateVacaInput) {
     return this.vacasService.create(input);
+  }
+
+  @Mutation(() => Vaca)
+  updateVaca(@Args('id', { type: () => Int }) id: number, @Args('input') input: UpdateVacaInput) {
+    return this.vacasService.update(id, input as any);
   }
 }

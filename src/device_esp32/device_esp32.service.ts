@@ -57,4 +57,29 @@ export class DispositivosService {
     if (!d) throw new NotFoundException('Dispositivo no encontrado');
     return d;
   }
+
+  async update(id: number, input: Partial<DispositivoESP32> & any): Promise<DispositivoESP32> {
+    const device = await this.findOneById(id);
+
+    // Map fields similar to create mapping
+    if (input.battery_level !== undefined) device.battery_level = input.battery_level;
+    if (input.status !== undefined) device.status = input.status;
+
+    if (input.tipo !== undefined) {
+      const v = input.tipo as string;
+      const allowed = ['primary', 'child'];
+      if (allowed.includes(v)) device.type = v;
+    }
+
+    if (input.ubicacion !== undefined) device.location = input.ubicacion;
+    if (input.ultima_actualizacion !== undefined) device.last_update = input.ultima_actualizacion instanceof Date ? input.ultima_actualizacion : new Date(input.ultima_actualizacion);
+
+    if (input.id_zona !== undefined) {
+      device.zone = input.id_zona === null ? undefined as any : ({ id: input.id_zona } as any);
+    }
+
+    const saved = await this.repo.save(device);
+    const withRelations = await this.repo.findOne({ where: { id: saved.id }, relations: ['zone'] });
+    return withRelations ?? saved;
+  }
 }

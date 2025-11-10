@@ -72,4 +72,34 @@ export class VacasService {
     if (v.image) v.image = decryptText(v.image);
     return v;
   }
+
+  async update(id: number, input: Partial<Vaca> & any): Promise<Vaca> {
+    const v = await this.findOneById(id);
+
+    // map possible input fields (accept spanish/english)
+    if (input.nombre !== undefined) v.name = input.nombre;
+    if (input.name !== undefined) v.name = input.name;
+
+    if (input.comida_preferida !== undefined) v.favorite_food = input.comida_preferida;
+    if (input.favorite_food !== undefined) v.favorite_food = input.favorite_food;
+
+    if (input.id_usuario !== undefined) v.user = input.id_usuario === null ? undefined as any : ({ id_user: input.id_usuario } as any);
+    if (input.id_user !== undefined) v.user = input.id_user === null ? undefined as any : ({ id_user: input.id_user } as any);
+
+    if (input.tag_id !== undefined) {
+      // find tag by PK or id_tag
+      const tagRepo = this.vacasRepo.manager.getRepository('Tag');
+      let tag = await tagRepo.findOne({ where: { id: Number(input.tag_id) } });
+      if (!tag) tag = await tagRepo.findOne({ where: { id_tag: String(input.tag_id) } });
+      if (!tag) throw new NotFoundException('Tag no encontrado');
+      v.tag = { id: tag.id } as any;
+    }
+
+    if (input.imagen !== undefined) v.image = input.imagen ? encryptText(input.imagen) : undefined;
+    if (input.image !== undefined) v.image = input.image ? encryptText(input.image) : undefined;
+
+    const saved = await this.vacasRepo.save(v);
+    if (saved.image) saved.image = decryptText(saved.image);
+    return saved;
+  }
 }
