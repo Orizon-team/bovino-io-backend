@@ -41,8 +41,8 @@ export class VacasService {
     }
     if (!tag) throw new NotFoundException('Tag no encontrado');
 
-    // attach relation
-    payload.tag = { id: tag.id };
+  // attach relation - use full Tag entity so GraphQL fields like id_tag are available
+  payload.tag = tag;
 
     const v = this.vacasRepo.create(payload as Partial<Vaca>);
     const saved = await this.vacasRepo.save(v);
@@ -92,7 +92,7 @@ export class VacasService {
       let tag = await tagRepo.findOne({ where: { id: Number(input.tag_id) } });
       if (!tag) tag = await tagRepo.findOne({ where: { id_tag: String(input.tag_id) } });
       if (!tag) throw new NotFoundException('Tag no encontrado');
-      v.tag = { id: tag.id } as any;
+  v.tag = tag as any;
     }
 
     if (input.imagen !== undefined) v.image = input.imagen ? encryptText(input.imagen) : undefined;
