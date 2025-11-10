@@ -20,9 +20,17 @@ export class VacasService {
     const tagId = raw.tag_id ?? raw.tag ?? (raw.tag && raw.tag.id);
     // name: accept name or nombre
     payload.name = raw.name ?? raw.nombre;
-  // id_user -> attach user relation if provided
-  const userId = raw.id_user ?? raw.id_usuario;
-  if (userId !== undefined && userId !== null) payload.user = { id_user: Number(userId) } as any;
+    // id_user -> attach user relation if provided (validate existence)
+    const userId = raw.id_user ?? raw.id_usuario;
+    if (userId !== undefined && userId !== null) {
+      const userRepo = this.vacasRepo.manager.getRepository('User');
+      const user = await userRepo.findOne({ where: { id_user: Number(userId) } });
+      if (!user) {
+        // fail early with clear error instead of silently saving null relation
+        throw new NotFoundException('User no encontrado');
+      }
+      payload.user = user;
+    }
     // favorite_food
     payload.favorite_food = raw.favorite_food ?? raw.comida_preferida;
     // image: accept uploaded 'imagen' or 'image'
@@ -94,8 +102,24 @@ export class VacasService {
     if (input.comida_preferida !== undefined) v.favorite_food = input.comida_preferida;
     if (input.favorite_food !== undefined) v.favorite_food = input.favorite_food;
 
-    if (input.id_usuario !== undefined) v.user = input.id_usuario === null ? undefined as any : ({ id_user: input.id_usuario } as any);
-    if (input.id_user !== undefined) v.user = input.id_user === null ? undefined as any : ({ id_user: input.id_user } as any);
+    if (input.id_usuario !== undefined) {
+      if (input.id_usuario === null) v.user = undefined as any;
+      else {
+        const userRepo = this.vacasRepo.manager.getRepository('User');
+        const user = await userRepo.findOne({ where: { id_user: Number(input.id_usuario) } });
+        if (!user) throw new NotFoundException('User no encontrado');
+        v.user = user as any;
+      }
+    }
+    if (input.id_user !== undefined) {
+      if (input.id_user === null) v.user = undefined as any;
+      else {
+        const userRepo = this.vacasRepo.manager.getRepository('User');
+        const user = await userRepo.findOne({ where: { id_user: Number(input.id_user) } });
+        if (!user) throw new NotFoundException('User no encontrado');
+        v.user = user as any;
+      }
+    }
 
     if (input.tag_id !== undefined) {
       // find tag by PK or id_tag
