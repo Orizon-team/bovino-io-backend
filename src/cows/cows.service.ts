@@ -55,7 +55,7 @@ export class VacasService {
   }
 
   async findAll(): Promise<Vaca[]> {
-    const list = await this.vacasRepo.find();
+    const list = await this.vacasRepo.find({ relations: ['tag', 'user'] });
     return list.map((v) => {
       if (v.image) v.image = decryptText(v.image);
       return v;
@@ -63,7 +63,7 @@ export class VacasService {
   }
 
   async findOneById(id: number): Promise<Vaca> {
-    const v = await this.vacasRepo.findOne({ where: { id } });
+    const v = await this.vacasRepo.findOne({ where: { id }, relations: ['tag', 'user'] });
     if (!v) throw new NotFoundException('Vaca no encontrada');
     if (v.image) v.image = decryptText(v.image);
     return v;

@@ -11,7 +11,7 @@ export class Vaca {
   @PrimaryGeneratedColumn({ name: 'id' })
   id: number;
 
-  @Field(() => Tag)
+  @Field(() => Tag, { nullable: true })
   @ManyToOne(() => Tag, { nullable: false, onUpdate: 'CASCADE', onDelete: 'CASCADE' })
   @JoinColumn({ name: 'tag_id' })
   tag: Tag;
