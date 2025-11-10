@@ -9,21 +9,28 @@ export class ZoneService {
   constructor(@InjectRepository(Zone) private repo: Repository<Zone>) {}
 
   async create(input: CreateZoneInput): Promise<Zone> {
-    const z = this.repo.create(input as Partial<Zone>);
-    return this.repo.save(z);
+    const { id_user, ...rest } = input;
+    const zone = this.repo.create(rest as Partial<Zone>);
+
+    if (id_user !== undefined) {
+      zone.user = { id: id_user } as any;
+    }
+
+    const saved = await this.repo.save(zone);
+    return this.findOneById(saved.id);
   }
 
   async findAll(): Promise<Zone[]> {
-    return this.repo.find();
+    return this.repo.find({ relations: ['user'] });
   }
 
   async findOneById(id: number): Promise<Zone> {
-    const z = await this.repo.findOne({ where: { id } });
+    const z = await this.repo.findOne({ where: { id }, relations: ['user'] });
     if (!z) throw new NotFoundException('Zone not found');
     return z;
   }
 
   async findByName(name: string): Promise<Zone | null> {
-    return this.repo.findOne({ where: { name } });
+    return this.repo.findOne({ where: { name }, relations: ['user'] });
   }
 }

@@ -1,5 +1,5 @@
-import { InputType, Field } from '@nestjs/graphql';
-import { IsOptional, IsString, Length } from 'class-validator';
+import { InputType, Field, Int } from '@nestjs/graphql';
+import { IsOptional, IsString, Length, IsInt } from 'class-validator';
 
 @InputType()
 export class CreateZoneInput {
@@ -17,4 +17,9 @@ export class CreateZoneInput {
   @IsOptional()
   @IsString()
   location?: string;
+
+  @Field(() => Int, { nullable: true })
+  @IsOptional()
+  @IsInt()
+  id_user?: number;
 }

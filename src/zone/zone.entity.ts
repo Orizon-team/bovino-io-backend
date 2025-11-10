@@ -1,5 +1,6 @@
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
 import { ObjectType, Field, Int } from '@nestjs/graphql';
+import { User } from '../users/user.entity';
 
 @ObjectType()
 @Entity({ name: 'Zone' })
@@ -19,4 +20,9 @@ export class Zone {
   @Field({ nullable: true })
   @Column({ type: 'varchar', length: 255, nullable: true, name: 'location' })
   location?: string;
+
+  @Field(() => User, { nullable: true })
+  @ManyToOne(() => User, { nullable: true, onUpdate: 'CASCADE', onDelete: 'SET NULL' })
+  @JoinColumn({ name: 'id_user' })
+  user?: User;
 }
