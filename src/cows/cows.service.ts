@@ -20,8 +20,9 @@ export class VacasService {
     const tagId = raw.tag_id ?? raw.tag ?? (raw.tag && raw.tag.id);
     // name: accept name or nombre
     payload.name = raw.name ?? raw.nombre;
-    // id_user
-    payload.id_user = raw.id_user ?? raw.id_usuario;
+  // id_user -> attach user relation if provided
+  const userId = raw.id_user ?? raw.id_usuario;
+  if (userId !== undefined && userId !== null) payload.user = { id_user: Number(userId) } as any;
     // favorite_food
     payload.favorite_food = raw.favorite_food ?? raw.comida_preferida;
     // image: accept uploaded 'imagen' or 'image'
@@ -43,6 +44,8 @@ export class VacasService {
 
   // attach relation - use full Tag entity so GraphQL fields like id_tag are available
   payload.tag = tag;
+  // set ear_tag on the cow from the tag's id_tag if available
+  if (tag && tag.id_tag) payload.ear_tag = tag.id_tag;
 
     const v = this.vacasRepo.create(payload as Partial<Vaca>);
     const saved = await this.vacasRepo.save(v);
