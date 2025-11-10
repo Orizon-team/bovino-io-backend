@@ -76,6 +76,14 @@ export class VacasService {
     return v;
   }
 
+  async findByUserId(userId: number): Promise<Vaca[]> {
+    const list = await this.vacasRepo.find({ where: { user: { id_user: userId } }, relations: ['tag', 'user'] });
+    return list.map((v) => {
+      if (v.image) v.image = decryptText(v.image);
+      return v;
+    });
+  }
+
   async update(id: number, input: Partial<Vaca> & any): Promise<Vaca> {
     const v = await this.findOneById(id);
 

@@ -27,4 +27,9 @@ export class VacasResolver {
   updateVaca(@Args('id', { type: () => Int }) id: number, @Args('input') input: UpdateVacaInput) {
     return this.vacasService.update(id, input as any);
   }
+
+  @Query(() => [Vaca])
+  vacasByUser(@Args('userId', { type: () => Int }) userId: number) {
+    return this.vacasService.findByUserId(userId);
+  }
 }
