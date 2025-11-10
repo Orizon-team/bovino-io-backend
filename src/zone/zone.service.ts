@@ -13,7 +13,8 @@ export class ZoneService {
     const zone = this.repo.create(rest as Partial<Zone>);
 
     if (id_user !== undefined) {
-      zone.user = { id: id_user } as any;
+      // User primary key property is `id_user` in the User entity, set that field
+      zone.user = { id_user: id_user } as any;
     }
 
     const saved = await this.repo.save(zone);
