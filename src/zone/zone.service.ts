@@ -65,4 +65,10 @@ export class ZoneService {
     const saved = await this.repo.save(zone);
     return this.findOneById(saved.id);
   }
+
+  async remove(id: number): Promise<boolean> {
+    const res = await this.repo.delete({ id });
+    if (res.affected && res.affected > 0) return true;
+    throw new NotFoundException('Zone not found');
+  }
 }

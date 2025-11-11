@@ -34,4 +34,9 @@ export class ZoneResolver {
   createZone(@Args('input') input: CreateZoneInput) {
     return this.zoneService.create(input);
   }
+
+  @Mutation(() => Boolean)
+  deleteZone(@Args('id', { type: () => Int }) id: number) {
+    return this.zoneService.remove(id);
+  }
 }
