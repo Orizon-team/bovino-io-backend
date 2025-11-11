@@ -1,5 +1,5 @@
 import { InputType, Field, Int, Float } from '@nestjs/graphql';
-import { IsOptional, IsInt, IsNumber } from 'class-validator';
+import { IsOptional, IsInt, IsNumber, IsBoolean } from 'class-validator';
 
 @InputType()
 export class UpdateDeteccionInput {
@@ -27,5 +27,18 @@ export class UpdateDeteccionInput {
 
   @Field({ nullable: true })
   @IsOptional()
+  @IsBoolean()
   is_present?: boolean;
+
+  @Field(() => Float, { nullable: true })
+  @IsOptional()
+  distance?: number;
+
+  @Field({ nullable: true })
+  @IsOptional()
+  first_seen?: Date;
+
+  @Field({ nullable: true })
+  @IsOptional()
+  last_seen?: Date;
 }
