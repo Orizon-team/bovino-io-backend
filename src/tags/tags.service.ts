@@ -57,4 +57,10 @@ export class TagsService {
     const merged = this.tagsRepo.merge(tag, payload as Partial<Tag>);
     return this.tagsRepo.save(merged);
   }
+
+  async remove(id: number): Promise<boolean> {
+    const res = await this.tagsRepo.delete({ id });
+    if (res.affected && res.affected > 0) return true;
+    throw new NotFoundException('Tag no encontrado');
+  }
 }

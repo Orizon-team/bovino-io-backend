@@ -27,4 +27,9 @@ export class TagsResolver {
   updateTag(@Args('id', { type: () => Int }) id: number, @Args('input') input: UpdateTagInput) {
     return this.tagsService.update(id, input as any);
   }
+
+  @Mutation(() => Boolean)
+  deleteTag(@Args('id', { type: () => Int }) id: number) {
+    return this.tagsService.remove(id);
+  }
 }
