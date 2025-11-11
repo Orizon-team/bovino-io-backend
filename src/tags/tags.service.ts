@@ -11,8 +11,13 @@ export class TagsService {
   ) {}
 
   async create(input: CreateTagInput): Promise<Tag> {
-    // Si existe una restricción de unicidad en otro campo, comprobar aquí;
-    const t = this.tagsRepo.create(input as Partial<Tag>);
+    // Normalize last_transmission: accept ISO string and convert to Date so TypeORM/Apollo DateTime serializer works
+    const payload: any = { ...input } as any;
+    if (payload.last_transmission) {
+      const d = payload.last_transmission instanceof Date ? payload.last_transmission : new Date(payload.last_transmission);
+      payload.last_transmission = isNaN(d.getTime()) ? undefined : d;
+    }
+    const t = this.tagsRepo.create(payload as Partial<Tag>);
     return this.tagsRepo.save(t);
   }
 
@@ -44,7 +49,12 @@ export class TagsService {
 
   async update(id: number, input: Partial<Tag>): Promise<Tag> {
     const tag = await this.findOneById(id);
-    const merged = this.tagsRepo.merge(tag, input as Partial<Tag>);
+    const payload: any = { ...input } as any;
+    if (payload.last_transmission) {
+      const d = payload.last_transmission instanceof Date ? payload.last_transmission : new Date(payload.last_transmission);
+      payload.last_transmission = isNaN(d.getTime()) ? undefined : d;
+    }
+    const merged = this.tagsRepo.merge(tag, payload as Partial<Tag>);
     return this.tagsRepo.save(merged);
   }
 }
