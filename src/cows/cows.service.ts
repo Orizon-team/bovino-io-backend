@@ -137,4 +137,10 @@ export class VacasService {
     if (saved.image) saved.image = decryptText(saved.image);
     return saved;
   }
+
+  async remove(id: number): Promise<boolean> {
+    const res = await this.vacasRepo.delete({ id });
+    if (res.affected && res.affected > 0) return true;
+    throw new NotFoundException('Vaca no encontrada');
+  }
 }

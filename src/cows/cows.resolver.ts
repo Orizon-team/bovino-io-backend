@@ -32,4 +32,9 @@ export class VacasResolver {
   vacasByUser(@Args('userId', { type: () => Int }) userId: number) {
     return this.vacasService.findByUserId(userId);
   }
+
+  @Mutation(() => Boolean)
+  deleteVaca(@Args('id', { type: () => Int }) id: number) {
+    return this.vacasService.remove(id);
+  }
 }
