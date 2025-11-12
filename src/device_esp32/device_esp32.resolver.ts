@@ -18,6 +18,11 @@ export class DispositivosResolver {
     return this.dispositivosService.findOneById(id);
   }
 
+  @Query(() => [DispositivoESP32], { name: 'dispositivosByZone' })
+  dispositivosByZone(@Args('id_zone', { type: () => Int }) id_zone: number) {
+    return this.dispositivosService.findByZone(id_zone);
+  }
+
   @Mutation(() => DispositivoESP32)
   createDispositivo(@Args('input') input: CreateDispositivoInput) {
     return this.dispositivosService.create(input);

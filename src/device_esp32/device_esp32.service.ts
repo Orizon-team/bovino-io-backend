@@ -58,6 +58,11 @@ export class DispositivosService {
     return d;
   }
 
+  async findByZone(zoneId: number): Promise<DispositivoESP32[]> {
+    // find devices whose zone FK matches the provided id; include zone relation
+    return this.repo.find({ where: { zone: { id: Number(zoneId) } }, relations: ['zone'] });
+  }
+
   async update(id: number, input: Partial<DispositivoESP32> & any): Promise<DispositivoESP32> {
     const device = await this.findOneById(id);
 
