@@ -20,7 +20,7 @@ export class Evento {
   @Column({ type: 'varchar', length: 100, nullable: true, name: 'Event_Code' })
   Event_Code?: string;
 
-  @Field({ nullable: true, name: 'Descripcion_Evento' })
+  @Field(() => String, { nullable: true, name: 'Descripcion_Evento' })
   get descripcionEvento(): string | undefined {
     return this.Event_Description;
   }
@@ -29,7 +29,7 @@ export class Evento {
   @Column({ type: 'varchar', length: 100, nullable: true, name: 'Event_Type' })
   Event_Type?: string;
 
-  @Field({ nullable: true, name: 'Tipo_Evento' })
+  @Field(() => String, { nullable: true, name: 'Tipo_Evento' })
   get tipoEvento(): string | undefined {
     return this.Event_Type;
   }
@@ -42,7 +42,7 @@ export class Evento {
   @Column({ type: 'time', nullable: true, name: 'time' })
   time?: string;
 
-  @Field({ nullable: true, name: 'hora' })
+  @Field(() => String, { nullable: true, name: 'hora' })
   get hora(): string | undefined {
     return this.time;
   }
@@ -51,7 +51,7 @@ export class Evento {
   @Column({ type: 'date', nullable: true, name: 'date' })
   date?: string;
 
-  @Field({ nullable: true, name: 'fecha' })
+  @Field(() => String, { nullable: true, name: 'fecha' })
   get fecha(): string | undefined {
     return this.date;
   }
