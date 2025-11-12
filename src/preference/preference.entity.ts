@@ -43,8 +43,10 @@ export class Preferencia {
   @Column({ type: 'datetime', nullable: true, name: 'last_visit' })
   last_visit?: Date;
 
-  @Field({ nullable: true, name: 'ultima_visita' })
-  get ultimaVisita(): Date | undefined {
-    return this.last_visit;
+  @Field(() => String, { nullable: true, name: 'ultima_visita' })
+  get ultimaVisita(): string | undefined {
+    if (!this.last_visit) return undefined;
+    // return ISO string for GraphQL clients
+    return this.last_visit instanceof Date ? this.last_visit.toISOString() : String(this.last_visit);
   }
 }
