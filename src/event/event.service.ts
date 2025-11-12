@@ -14,7 +14,11 @@ export class EventosService {
 
     if (raw.Event_Type !== undefined) payload.Event_Type = raw.Event_Type;
     if (raw.Event_Description !== undefined) payload.Event_Description = raw.Event_Description;
-  // accept English or Spanish date/time keys
+  // accept Event_Code and English/Spanish date/time keys
+  if (raw.Event_Code !== undefined) payload.Event_Code = raw.Event_Code;
+  if (raw.event_code !== undefined) payload.Event_Code = raw.event_code;
+  if (raw.codigo_evento !== undefined) payload.Event_Code = raw.codigo_evento;
+
   if (raw.date !== undefined) payload.date = raw.date;
   if (raw.time !== undefined) payload.time = raw.time;
   if (raw.fecha !== undefined) payload.date = raw.fecha;
@@ -58,11 +62,15 @@ export class EventosService {
     if (!e) throw new Error('Evento no encontrado');
 
     if (input.Event_Type !== undefined) e.Event_Type = input.Event_Type;
-    if (input.Event_Description !== undefined) e.Event_Description = input.Event_Description;
-    if (input.date !== undefined) e.date = input.date;
-    if (input.time !== undefined) e.time = input.time;
-    if (input.fecha !== undefined) e.date = input.fecha;
-    if (input.hora !== undefined) e.time = input.hora;
+  if (input.Event_Description !== undefined) e.Event_Description = input.Event_Description;
+  if (input.Event_Code !== undefined) e.Event_Code = input.Event_Code as any;
+  if (input.event_code !== undefined) e.Event_Code = input.event_code as any;
+  if (input.codigo_evento !== undefined) e.Event_Code = input.codigo_evento as any;
+
+  if (input.date !== undefined) e.date = input.date as any;
+  if (input.time !== undefined) e.time = input.time as any;
+  if (input.fecha !== undefined) e.date = input.fecha as any;
+  if (input.hora !== undefined) e.time = input.hora as any;
   if (input.id_cow !== undefined) e.cow = input.id_cow === null ? undefined as any : ({ id: input.id_cow } as any);
   if (input.id_tag !== undefined) e.tag = input.id_tag === null ? undefined as any : ({ id: input.id_tag } as any);
   if (input.id_device !== undefined) e.device = input.id_device === null ? undefined as any : ({ id: input.id_device } as any);

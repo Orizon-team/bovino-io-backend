@@ -12,6 +12,11 @@ export class CreateEventoInput {
   @IsString()
   Event_Description?: string;
 
+  @Field({ nullable: true })
+  @IsOptional()
+  @IsString()
+  Event_Code?: string;
+
   @Field(() => Int, { nullable: true })
   @IsOptional()
   id_cow?: number;
