@@ -12,6 +12,11 @@ export class User {
   @Column({ type: 'varchar', length: 100, nullable: true, name: 'name' })
   name?: string;
 
+  @Field(() => String, { nullable: true, name: 'username' })
+  get username(): string | undefined {
+    return this.name;
+  }
+
   @Field(() => String)
   @Column({ type: 'varchar', length: 100, name: 'email', unique: true })
   email: string;
