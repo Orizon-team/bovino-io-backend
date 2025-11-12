@@ -8,18 +8,9 @@ export class UpdateZoneInput {
   @IsString()
   name?: string;
 
-  @Field({ nullable: true })
-  @IsOptional()
-  @IsString()
-  description?: string;
-
-  @Field({ nullable: true })
-  @IsOptional()
-  @IsString()
-  location?: string;
-
   @Field(() => Int, { nullable: true })
   @IsOptional()
   @IsInt()
   id_user?: number | null;
+
 }

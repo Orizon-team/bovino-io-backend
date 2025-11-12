@@ -13,13 +13,6 @@ export class Zone {
   @Column({ type: 'varchar', length: 100, name: 'name' })
   name: string;
 
-  @Field({ nullable: true })
-  @Column({ type: 'text', nullable: true, name: 'description' })
-  description?: string;
-
-  @Field({ nullable: true })
-  @Column({ type: 'varchar', length: 255, nullable: true, name: 'location' })
-  location?: string;
 
   @Field(() => User, { nullable: true })
   @ManyToOne(() => User, { nullable: true, onUpdate: 'CASCADE', onDelete: 'SET NULL' })

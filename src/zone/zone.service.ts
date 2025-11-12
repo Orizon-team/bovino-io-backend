@@ -46,10 +46,8 @@ export class ZoneService {
     const zone = await this.repo.findOne({ where: { id }, relations: ['user'] });
     if (!zone) throw new NotFoundException('Zone not found');
 
-    // Map allowed fields
-    if ((input as any).name !== undefined) zone.name = (input as any).name;
-    if ((input as any).description !== undefined) zone.description = (input as any).description;
-    if ((input as any).location !== undefined) zone.location = (input as any).location;
+  // Map allowed fields
+  if ((input as any).name !== undefined) zone.name = (input as any).name;
 
     // id_user can be number or null
     if ((input as any).id_user !== undefined) {

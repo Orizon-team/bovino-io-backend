@@ -8,15 +8,6 @@ export class CreateZoneInput {
   @Length(1, 100)
   name: string;
 
-  @Field({ nullable: true })
-  @IsOptional()
-  @IsString()
-  description?: string;
-
-  @Field({ nullable: true })
-  @IsOptional()
-  @IsString()
-  location?: string;
 
   @Field(() => Int, { nullable: true })
   @IsOptional()
