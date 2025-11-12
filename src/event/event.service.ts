@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Evento } from './event.entity';
@@ -9,8 +9,35 @@ export class EventosService {
   constructor(@InjectRepository(Evento) private repo: Repository<Evento>) {}
 
   async create(input: CreateEventoInput): Promise<Evento> {
-    const e = this.repo.create(input as Partial<Evento>);
-    return this.repo.save(e);
+    const raw: any = input as any;
+    const payload: Partial<Evento> = {};
+
+    if (raw.Event_Type !== undefined) payload.Event_Type = raw.Event_Type;
+    if (raw.Event_Description !== undefined) payload.Event_Description = raw.Event_Description;
+
+    // resolve cow/tag/device relations when ids provided
+    if (raw.id_cow !== undefined && raw.id_cow !== null) {
+      const cowRepo = this.repo.manager.getRepository('Vaca');
+      const cow = await cowRepo.findOne({ where: { id: Number(raw.id_cow) } });
+      if (!cow) throw new NotFoundException('Vaca no encontrada');
+      payload.cow = cow as any;
+    }
+    if (raw.id_tag !== undefined && raw.id_tag !== null) {
+      const tagRepo = this.repo.manager.getRepository('Tag');
+      const tag = await tagRepo.findOne({ where: { id: Number(raw.id_tag) } });
+      if (!tag) throw new NotFoundException('Tag no encontrado');
+      payload.tag = tag as any;
+    }
+    if (raw.id_device !== undefined && raw.id_device !== null) {
+      const deviceRepo = this.repo.manager.getRepository('DispositivoESP32');
+      const device = await deviceRepo.findOne({ where: { id: Number(raw.id_device) } });
+      if (!device) throw new NotFoundException('Dispositivo no encontrado');
+      payload.device = device as any;
+    }
+
+    const e = this.repo.create(payload as Partial<Evento>);
+    const saved = await this.repo.save(e);
+    return this.findOneById(saved.id_event) as Promise<Evento>;
   }
 
   async findAll(): Promise<Evento[]> {
