@@ -19,9 +19,9 @@ export class DispositivosService {
 
     // map spanish input names to entity column names
     if ((input as any).tipo !== undefined) {
-      // entity.column 'type' is an enum ['primary','child'] — only set if value is valid
+      // entity.column 'type' is an enum ['master','slave'] — only set if value is valid
       const v = (input as any).tipo as string;
-      const allowed = ['primary', 'child'];
+      const allowed = ['master', 'slave'];
       if (allowed.includes(v)) payload.type = v;
       // otherwise skip setting `type` so DB default is used. If you need to store
       // device model like 'esp32', consider adding a new column or extending the enum.
@@ -72,7 +72,7 @@ export class DispositivosService {
 
     if (input.tipo !== undefined) {
       const v = input.tipo as string;
-      const allowed = ['primary', 'child'];
+      const allowed = ['master', 'slave'];
       if (allowed.includes(v)) device.type = v;
     }
 
