@@ -20,6 +20,11 @@ export class Vaca {
   @Column({ type: 'varchar', length: 100, nullable: false, name: 'name' })
   name: string;
 
+  @Field(() => String, { nullable: true, name: 'nombre' })
+  get nombre(): string | undefined {
+    return this.name;
+  }
+
   @Field(() => User, { nullable: true })
   @ManyToOne(() => User, { nullable: true, onUpdate: 'CASCADE', onDelete: 'SET NULL' })
   @JoinColumn({ name: 'id_user' })
