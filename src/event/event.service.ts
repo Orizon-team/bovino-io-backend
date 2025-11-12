@@ -14,6 +14,11 @@ export class EventosService {
 
     if (raw.Event_Type !== undefined) payload.Event_Type = raw.Event_Type;
     if (raw.Event_Description !== undefined) payload.Event_Description = raw.Event_Description;
+  // accept English or Spanish date/time keys
+  if (raw.date !== undefined) payload.date = raw.date;
+  if (raw.time !== undefined) payload.time = raw.time;
+  if (raw.fecha !== undefined) payload.date = raw.fecha;
+  if (raw.hora !== undefined) payload.time = raw.hora;
 
     // resolve cow/tag/device relations when ids provided
     if (raw.id_cow !== undefined && raw.id_cow !== null) {
@@ -54,6 +59,10 @@ export class EventosService {
 
     if (input.Event_Type !== undefined) e.Event_Type = input.Event_Type;
     if (input.Event_Description !== undefined) e.Event_Description = input.Event_Description;
+    if (input.date !== undefined) e.date = input.date;
+    if (input.time !== undefined) e.time = input.time;
+    if (input.fecha !== undefined) e.date = input.fecha;
+    if (input.hora !== undefined) e.time = input.hora;
   if (input.id_cow !== undefined) e.cow = input.id_cow === null ? undefined as any : ({ id: input.id_cow } as any);
   if (input.id_tag !== undefined) e.tag = input.id_tag === null ? undefined as any : ({ id: input.id_tag } as any);
   if (input.id_device !== undefined) e.device = input.id_device === null ? undefined as any : ({ id: input.id_device } as any);

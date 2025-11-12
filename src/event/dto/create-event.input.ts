@@ -23,4 +23,14 @@ export class CreateEventoInput {
   @Field(() => Int, { nullable: true })
   @IsOptional()
   id_device?: number;
+
+  @Field({ nullable: true })
+  @IsOptional()
+  @IsString()
+  date?: string;
+
+  @Field({ nullable: true })
+  @IsOptional()
+  @IsString()
+  time?: string;
 }
