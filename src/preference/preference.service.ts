@@ -9,16 +9,37 @@ export class PreferenciasService {
   constructor(@InjectRepository(Preferencia) private repo: Repository<Preferencia>) {}
 
   async create(input: CreatePreferenciaInput): Promise<Preferencia> {
-    const p = this.repo.create(input as Partial<Preferencia>);
-    return this.repo.save(p);
+    const raw: any = input as any;
+    const payload: Partial<Preferencia> = {};
+
+    if (raw.visit_count !== undefined) payload.visit_count = raw.visit_count;
+    if (raw.last_visit !== undefined) payload.last_visit = raw.last_visit instanceof Date ? raw.last_visit : new Date(raw.last_visit);
+
+    // resolve relations if ids provided
+    if (raw.id_cow !== undefined && raw.id_cow !== null) {
+      const cowRepo = this.repo.manager.getRepository('Vaca');
+      const cow = await cowRepo.findOne({ where: { id: Number(raw.id_cow) } });
+      if (!cow) throw new NotFoundException('Vaca no encontrada');
+      payload.cow = cow as any;
+    }
+    if (raw.id_zone !== undefined && raw.id_zone !== null) {
+      const zoneRepo = this.repo.manager.getRepository('Zone');
+      const zone = await zoneRepo.findOne({ where: { id: Number(raw.id_zone) } });
+      if (!zone) throw new NotFoundException('Zona no encontrada');
+      payload.zone = zone as any;
+    }
+
+    const p = this.repo.create(payload as Partial<Preferencia>);
+    const saved = await this.repo.save(p);
+    return this.findOneById(saved.id);
   }
 
   async findAll(): Promise<Preferencia[]> {
-    return this.repo.find({ relations: ['vaca', 'zona'] });
+    return this.repo.find({ relations: ['cow', 'zone'] });
   }
 
   async findOneById(id: number): Promise<Preferencia> {
-    const p = await this.repo.findOne({ where: { id }, relations: ['vaca', 'zona'] });
+    const p = await this.repo.findOne({ where: { id }, relations: ['cow', 'zone'] });
     if (!p) throw new NotFoundException('Preferencia no encontrada');
     return p;
   }
