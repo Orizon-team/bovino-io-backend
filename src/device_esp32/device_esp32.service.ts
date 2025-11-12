@@ -57,11 +57,12 @@ export class DispositivosService {
   }
 
   async findAll(): Promise<DispositivoESP32[]> {
-    return this.repo.find();
+    // include zone relation so GraphQL can resolve nested `zone` fields
+    return this.repo.find({ relations: ['zone'] });
   }
 
   async findOneById(id: number): Promise<DispositivoESP32> {
-    const d = await this.repo.findOne({ where: { id } });
+    const d = await this.repo.findOne({ where: { id }, relations: ['zone'] });
     if (!d) throw new NotFoundException('Dispositivo no encontrado');
     return d;
   }
