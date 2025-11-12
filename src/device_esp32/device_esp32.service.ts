@@ -34,8 +34,16 @@ export class DispositivosService {
 
     // associate zone by id if provided
     if ((input as any).id_zona !== undefined) {
-      // provide a minimal relation object with id so TypeORM sets the FK
-      payload.zone = { id: (input as any).id_zona } as any;
+      const zid = (input as any).id_zona;
+      if (zid === null) {
+        payload.zone = undefined as any;
+      } else {
+        // resolve actual Zone entity to avoid FK constraint errors when id doesn't exist
+        const zoneRepo = this.repo.manager.getRepository('Zone');
+        const zone = await zoneRepo.findOne({ where: { id: Number(zid) } });
+        if (!zone) throw new NotFoundException('Zone not found');
+        payload.zone = zone as any;
+      }
     }
 
     const d = this.repo.create(payload as Partial<DispositivoESP32>);
@@ -80,7 +88,14 @@ export class DispositivosService {
     if (input.ultima_actualizacion !== undefined) device.last_update = input.ultima_actualizacion instanceof Date ? input.ultima_actualizacion : new Date(input.ultima_actualizacion);
 
     if (input.id_zona !== undefined) {
-      device.zone = input.id_zona === null ? undefined as any : ({ id: input.id_zona } as any);
+      if (input.id_zona === null) {
+        device.zone = undefined as any;
+      } else {
+        const zoneRepo = this.repo.manager.getRepository('Zone');
+        const zone = await zoneRepo.findOne({ where: { id: Number(input.id_zona) } });
+        if (!zone) throw new NotFoundException('Zone not found');
+        device.zone = zone as any;
+      }
     }
 
     const saved = await this.repo.save(device);
