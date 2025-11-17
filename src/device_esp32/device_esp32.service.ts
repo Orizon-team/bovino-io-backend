@@ -109,4 +109,10 @@ export class DispositivosService {
     const withRelations = await this.repo.findOne({ where: { id: saved.id }, relations: ['zone'] });
     return withRelations ?? saved;
   }
+
+  async remove(id: number): Promise<boolean> {
+    const result = await this.repo.delete({ id });
+    if (result.affected && result.affected > 0) return true;
+    throw new NotFoundException('Dispositivo no encontrado');
+  }
 }

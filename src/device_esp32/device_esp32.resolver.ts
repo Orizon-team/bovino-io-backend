@@ -32,4 +32,9 @@ export class DispositivosResolver {
   updateDispositivo(@Args('id', { type: () => Int }) id: number, @Args('input') input: UpdateDispositivoInput) {
     return this.dispositivosService.update(id, input as any);
   }
+
+  @Mutation(() => Boolean)
+  deleteDispositivo(@Args('id', { type: () => Int }) id: number) {
+    return this.dispositivosService.remove(id);
+  }
 }
