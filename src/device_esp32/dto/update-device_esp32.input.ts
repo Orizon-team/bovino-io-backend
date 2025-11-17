@@ -11,6 +11,11 @@ export class UpdateDispositivoInput {
   @Field({ nullable: true })
   @IsOptional()
   @IsString()
+  name?: string;
+
+  @Field({ nullable: true })
+  @IsOptional()
+  @IsString()
   tipo?: string;
 
   @Field({ nullable: true })

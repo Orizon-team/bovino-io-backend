@@ -14,6 +14,9 @@ export class DispositivosService {
     // Map Spanish input fields to entity properties so they persist correctly.
     const payload: Partial<DispositivoESP32> = {};
 
+    if (input.name !== undefined) payload.name = input.name as string;
+    if ((input as any).nombre !== undefined) payload.name = (input as any).nombre as string;
+
     if (input.battery_level !== undefined) payload.battery_level = input.battery_level as number;
     if (input.status !== undefined) payload.status = input.status as string;
 
@@ -76,6 +79,9 @@ export class DispositivosService {
     const device = await this.findOneById(id);
 
     // Map fields similar to create mapping
+    if (input.name !== undefined) device.name = input.name;
+    if (input.nombre !== undefined) device.name = input.nombre;
+
     if (input.battery_level !== undefined) device.battery_level = input.battery_level;
     if (input.status !== undefined) device.status = input.status;
 

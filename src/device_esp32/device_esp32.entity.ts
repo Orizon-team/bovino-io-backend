@@ -15,6 +15,10 @@ export class DispositivoESP32 {
   zone?: Zone;
 
   @Field({ nullable: true })
+  @Column({ type: 'varchar', length: 100, nullable: true, name: 'name' })
+  name?: string;
+
+  @Field({ nullable: true })
   @Column({ type: 'enum', enum: ['master', 'slave'], default: 'master', name: 'type' })
   type?: string;
 
