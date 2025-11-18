@@ -35,6 +35,6 @@ export class DispositivoESP32 {
   battery_level?: number;
 
   @Field({ nullable: true })
-  @Column({ type: 'enum', enum: ['active', 'inactive', 'error'], default: 'active', name: 'status' })
+  @Column({ type: 'enum', enum: ['active', 'inactive', 'error', 'pending'], default: 'active', name: 'status' })
   status?: string;
 }
