@@ -10,6 +10,11 @@ export class CreateDispositivoInput {
   @Field({ nullable: true })
   @IsOptional()
   @IsString()
+  mac_address?: string;
+
+  @Field({ nullable: true })
+  @IsOptional()
+  @IsString()
   name?: string;
 
   @Field({ nullable: true })

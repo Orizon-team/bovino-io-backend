@@ -14,6 +14,9 @@ export class DispositivosService {
     // Map Spanish input fields to entity properties so they persist correctly.
     const payload: Partial<DispositivoESP32> = {};
 
+  if (input.mac_address !== undefined) payload.mac_address = input.mac_address as string;
+  if ((input as any).macAddress !== undefined) payload.mac_address = (input as any).macAddress as string;
+
     if (input.name !== undefined) payload.name = input.name as string;
     if ((input as any).nombre !== undefined) payload.name = (input as any).nombre as string;
 
@@ -79,6 +82,9 @@ export class DispositivosService {
     const device = await this.findOneById(id);
 
     // Map fields similar to create mapping
+  if (input.mac_address !== undefined) device.mac_address = input.mac_address;
+  if (input.macAddress !== undefined) device.mac_address = input.macAddress;
+
     if (input.name !== undefined) device.name = input.name;
     if (input.nombre !== undefined) device.name = input.nombre;
 

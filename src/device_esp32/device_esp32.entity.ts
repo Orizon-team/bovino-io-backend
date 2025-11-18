@@ -15,6 +15,10 @@ export class DispositivoESP32 {
   zone?: Zone;
 
   @Field({ nullable: true })
+  @Column({ type: 'varchar', length: 17, nullable: true, name: 'mac_address' })
+  mac_address?: string;
+
+  @Field({ nullable: true })
   @Column({ type: 'varchar', length: 100, nullable: true, name: 'name' })
   name?: string;
 
