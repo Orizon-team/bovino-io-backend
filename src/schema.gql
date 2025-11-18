@@ -3,15 +3,22 @@
 # ------------------------------------------------------
 
 input CreateDeteccionInput {
+  distance: Float
   fecha: DateTime
+  first_seen: DateTime
   id_device: Int!
   id_tag: Int!
   intensidad_senal: Float
+  is_present: Boolean
+  last_seen: DateTime
+  rssi: Int
 }
 
 input CreateDispositivoInput {
   battery_level: Float
   id_zona: Int
+  mac_address: String
+  name: String
   status: String
   tipo: String
   ubicacion: String
@@ -19,11 +26,14 @@ input CreateDispositivoInput {
 }
 
 input CreateEventoInput {
+  Event_Code: String
   Event_Description: String
   Event_Type: String!
+  date: String
   id_cow: Int
   id_device: Int
   id_tag: Int
+  time: String
 }
 
 input CreatePreferenciaInput {
@@ -34,30 +44,30 @@ input CreatePreferenciaInput {
 }
 
 input CreateTagInput {
-  id_vaca: Int
-  nivel_de_bateria: Float
+  battery_level: Float
+  current_location: String
+  id_tag: String
+  last_transmission: String
+  mac_address: String
   status: String
-  ubicacion_actual: String
-  ultima_transmision: String
 }
 
 input CreateUserInput {
-  contrasena: String!
-  correo_electronico: String!
-  nombre: String
+  email: String!
+  name: String
+  password: String!
 }
 
 input CreateVacaInput {
   comida_preferida: String
   id_usuario: Int
   imagen: String
-  nombre: String
-  tag_id: String!
+  nombre: String!
+  tag_id: Float!
 }
 
 input CreateZoneInput {
-  description: String
-  location: String
+  id_user: Int
   name: String!
 }
 
@@ -67,37 +77,50 @@ A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date
 scalar DateTime
 
 type Deteccion {
-  dispositivo: DispositivoESP32!
-  fecha: DateTime
+  device: DispositivoESP32!
+  distance: Float
+  first_seen: DateTime
   id: Int!
-  intensidad_senal: Float
+  is_present: Boolean!
+  last_seen: DateTime
+  rssi: Int
   tag: Tag!
 }
 
 type DispositivoESP32 {
+  battery_level: Float
   id: Int!
-  nivel_de_bateria: Float
+  last_update: DateTime
+  location: String
+  mac_address: String
+  name: String
   status: String
-  tipo: String
-  ubicacion: String
-  ultima_actualizacion: DateTime
-  zona: Zone
+  type: String
+  zone: Zone
 }
 
 type Evento {
   Codigo_Evento: Int!
   Descripcion_Evento: String
-  Tipo_Evento: String!
+  Event_Code: String
+  Event_Description: String
+  Event_Type: String
+  Tipo_Evento: String
+  cow: Vaca
+  date: String
+  device: DispositivoESP32
   dispositivo: DispositivoESP32
   fecha: String
   hora: String
+  id_event: Int!
   tag: Tag
+  time: String
   vaca: Vaca
 }
 
 input LoginUserInput {
-  contrasena: String!
-  correo_electronico: String!
+  email: String!
+  password: String!
 }
 
 type Mutation {
@@ -109,17 +132,32 @@ type Mutation {
   createUser(input: CreateUserInput!): User!
   createVaca(input: CreateVacaInput!): Vaca!
   createZone(input: CreateZoneInput!): Zone!
+  deleteDispositivo(id: Int!): Boolean!
+  deleteTag(id: Int!): Boolean!
   deleteUser(id: Int!): Boolean!
+  deleteVaca(id: Int!): Boolean!
+  deleteZone(id: Int!): Boolean!
   login(input: LoginUserInput!): User
+  updateDeteccion(id: Int!, input: UpdateDeteccionInput!): Deteccion!
+  updateDispositivo(id: Int!, input: UpdateDispositivoInput!): DispositivoESP32!
+  updateEvento(id: Int!, input: UpdateEventoInput!): Evento!
+  updatePreferencia(id: Int!, input: UpdatePreferenciaInput!): Preferencia!
+  updateTag(id: Int!, input: UpdateTagInput!): Tag!
   updateUser(id: Int!, input: UpdateUserInput!): User!
+  updateVaca(id: Int!, input: UpdateVacaInput!): Vaca!
+  updateZone(id: Int!, input: UpdateZoneInput!): Zone!
 }
 
 type Preferencia {
+  cow: Vaca
   id: Int!
+  last_visit: DateTime
   numero_de_visitas: Int!
-  ultima_visita: DateTime
-  vaca: Vaca!
-  zona: Zone!
+  ultima_visita: String
+  vaca: Vaca
+  visit_count: Int!
+  zona: Zone
+  zone: Zone
 }
 
 type Query {
@@ -127,6 +165,7 @@ type Query {
   detecciones: [Deteccion!]!
   dispositivo(id: Int!): DispositivoESP32!
   dispositivos: [DispositivoESP32!]!
+  dispositivosByZone(id_zone: Int!): [DispositivoESP32!]!
   evento(id: Int!): Evento
   eventos: [Evento!]!
   preferencia(id: Int!): Preferencia!
@@ -137,43 +176,108 @@ type Query {
   users: [User!]!
   vaca(id: Int!): Vaca!
   vacas: [Vaca!]!
+  vacasByUser(userId: Int!): [Vaca!]!
   zone(id: Int!): Zone!
   zones: [Zone!]!
+  zonesByUser(userId: Int!): [Zone!]!
 }
 
 type Tag {
+  battery_level: Float
+  current_location: String
   id: Int!
-  nivel_de_bateria: Float
+  id_tag: String!
+  last_transmission: DateTime
+  mac_address: String
   status: String
-  ubicacion_actual: String
-  ultima_transmision: DateTime
-  vaca: Vaca
+}
+
+input UpdateDeteccionInput {
+  distance: Float
+  fecha: DateTime
+  first_seen: DateTime
+  id_device: Int
+  id_tag: Int
+  intensidad_senal: Float
+  is_present: Boolean
+  last_seen: DateTime
+  rssi: Int
+}
+
+input UpdateDispositivoInput {
+  battery_level: Float
+  id_zona: Int
+  mac_address: String
+  name: String
+  status: String
+  tipo: String
+  ubicacion: String
+  ultima_actualizacion: DateTime
+}
+
+input UpdateEventoInput {
+  Event_Description: String
+  Event_Type: String
+  id_cow: Int
+  id_device: Int
+  id_tag: Int
+}
+
+input UpdatePreferenciaInput {
+  id_cow: Int
+  id_zone: Int
+  last_visit: DateTime
+  visit_count: Int
+}
+
+input UpdateTagInput {
+  battery_level: Float
+  current_location: String
+  id_tag: String
+  last_transmission: String
+  mac_address: String
+  status: String
 }
 
 input UpdateUserInput {
-  contrasena: String
-  correo_electronico: String
+  email: String
+  name: String
+  password: String
+}
+
+input UpdateVacaInput {
+  comida_preferida: String
+  id_usuario: Int
+  imagen: String
   nombre: String
+  tag_id: Int
+}
+
+input UpdateZoneInput {
+  id_user: Int
+  name: String
 }
 
 type User {
-  correo_electronico: String!
-  id_usuario: Int!
-  nombre: String
+  email: String!
+  id_user: Int!
+  name: String
+  username: String
 }
 
 type Vaca {
-  comida_preferida: String
+  ear_tag: String
+  favorite_food: String
   id: Int!
-  imagen: String
+  image: String
+  name: String!
   nombre: String
-  tag_id: String!
-  usuario: User
+  tag: Tag
+  user: User
 }
 
 type Zone {
-  description: String
   id: Int!
-  location: String
   name: String!
+  user: User
 }
