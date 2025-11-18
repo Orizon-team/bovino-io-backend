@@ -7,11 +7,13 @@ import { DetectionsController } from './detection.controller';
 import { TagsModule } from '../tags/tags.module';
 import { DispositivosModule } from '../device_esp32/device_esp32.module';
 import { ZoneModule } from '../zone/zone.module';
+import { DetectionsIngestService } from './detections-ingest.service';
+import { MqttDetectionsListener } from './mqtt-detections.listener';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Deteccion]), TagsModule, DispositivosModule, ZoneModule],
   controllers: [DetectionsController],
-  providers: [DeteccionesService, DeteccionesResolver],
+  providers: [DeteccionesService, DeteccionesResolver, DetectionsIngestService, MqttDetectionsListener],
   exports: [DeteccionesService],
 })
 export class DeteccionesModule {}
