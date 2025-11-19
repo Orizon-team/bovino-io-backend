@@ -20,7 +20,7 @@ export class MqttDetectionsListener implements OnModuleInit, OnModuleDestroy {
     const port = Number(process.env.MQTT_PORT ?? '8883');
     const username = process.env.MQTT_USERNAME ?? 'orizoncompany';
     const password = process.env.MQTT_PASSWORD ?? 'UzObFn33';
-  const topic = process.env.MQTT_TOPIC ?? 'bovino_io';
+    const topic = process.env.MQTT_TOPIC ?? 'bovino_io/detections';
 
     if (!host || !topic) {
       this.logger.warn('MQTT host or topic not configured; skipping MQTT ingestion.');

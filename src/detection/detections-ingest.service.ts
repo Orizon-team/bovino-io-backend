@@ -23,8 +23,10 @@ export class DetectionsIngestService {
       throw new BadRequestException('Invalid payload, missing detections array');
     }
 
-    const deviceId = Number(payload.device_id ?? payload.deviceId);
-    if (!deviceId || Number.isNaN(deviceId)) {
+    const deviceId = this.extractDeviceId(payload);
+    if (!deviceId) {
+      const inspected = this.describePayload(payload);
+      this.logger.warn(`Discarding ingest payload without device_id. Observed structure: ${inspected}`);
       throw new BadRequestException('Invalid payload, missing device_id');
     }
 
@@ -36,7 +38,12 @@ export class DetectionsIngestService {
     }
 
     let zone: Zone | null = null;
-    const zoneName = payload.zone_name ?? payload.zoneName;
+    const zoneName =
+      payload.zone_name ??
+      payload.zoneName ??
+      payload.device?.zone_name ??
+      payload.device?.zoneName ??
+      payload.device?.zone;
     if (zoneName) {
       zone = await this.zoneService.findByName(zoneName);
       if (!zone) {
@@ -107,5 +114,125 @@ export class DetectionsIngestService {
     }
     const date = new Date(value);
     return Number.isNaN(date.getTime()) ? null : date;
+  }
+
+  private extractDeviceId(payload: any): number | null {
+    const candidates: any[] = [
+      payload?.device_id,
+      payload?.deviceId,
+      payload?.DeviceID,
+      payload?.deviceid,
+      payload?.device?.id,
+      payload?.device?.device_id,
+      payload?.device?.deviceId,
+      payload?.device?.DeviceID,
+      payload?.device?.deviceid,
+      payload?.reader_id,
+      payload?.readerId,
+      payload?.gateway_id,
+      payload?.gatewayId,
+    ];
+
+    if (Array.isArray(payload?.detections)) {
+      for (const detection of payload.detections) {
+        candidates.push(
+          detection?.device_id,
+          detection?.deviceId,
+          detection?.DeviceID,
+          detection?.deviceid,
+          detection?.reader_id,
+          detection?.readerId,
+          detection?.gateway_id,
+          detection?.gatewayId,
+        );
+      }
+    }
+
+    for (const candidate of candidates) {
+      const normalized = this.toNumber(candidate);
+      if (normalized !== null) {
+        return normalized;
+      }
+    }
+
+    const deepSearch = this.searchIdByKey(payload, 0);
+    if (deepSearch !== null) {
+      return deepSearch;
+    }
+
+    return null;
+  }
+
+  private toNumber(value: any): number | null {
+    if (typeof value === 'number' && Number.isFinite(value)) {
+      return value;
+    }
+    if (typeof value === 'string') {
+      const trimmed = value.trim();
+      if (trimmed.length === 0) return null;
+      const parsed = Number(trimmed);
+      return Number.isNaN(parsed) ? null : parsed;
+    }
+    return null;
+  }
+
+  private searchIdByKey(source: any, depth: number): number | null {
+    if (!source || typeof source !== 'object' || depth > 4) {
+      return null;
+    }
+
+    const entries = Array.isArray(source) ? source.entries() : Object.entries(source);
+
+    for (const [key, value] of entries as Iterable<[any, any]>) {
+      const keyStr = String(key).toLowerCase();
+      const isPotentialId =
+        (keyStr.includes('device') && keyStr.includes('id')) ||
+        keyStr === 'reader_id' ||
+        keyStr === 'readerid' ||
+        keyStr === 'gateway_id' ||
+        keyStr === 'gatewayid';
+
+      if (isPotentialId) {
+        const numeric = this.toNumber(value);
+        if (numeric !== null) {
+          return numeric;
+        }
+      }
+
+      if (typeof value === 'object') {
+        const nested = this.searchIdByKey(value, depth + 1);
+        if (nested !== null) {
+          return nested;
+        }
+      }
+    }
+
+    return null;
+  }
+
+  private describePayload(payload: any): string {
+    try {
+      if (!payload || typeof payload !== 'object') {
+        return typeof payload;
+      }
+
+      const summary: Record<string, any> = {};
+      for (const [key, value] of Object.entries(payload)) {
+        if (value && typeof value === 'object') {
+          if (Array.isArray(value)) {
+            summary[key] = `array(len=${value.length})`;
+          } else {
+            const nestedKeys = Object.keys(value).slice(0, 5);
+            summary[key] = `object(keys=${nestedKeys.join(',')}${Object.keys(value).length > nestedKeys.length ? ',…' : ''})`;
+          }
+        } else {
+          summary[key] = value;
+        }
+      }
+
+      return JSON.stringify(summary);
+    } catch (err) {
+      return `unserializable: ${err instanceof Error ? err.message : String(err)}`;
+    }
   }
 }
