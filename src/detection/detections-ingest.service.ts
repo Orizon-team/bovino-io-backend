@@ -23,18 +23,34 @@ export class DetectionsIngestService {
       throw new BadRequestException('Invalid payload, missing detections array');
     }
 
-    const deviceId = this.extractDeviceId(payload);
-    if (!deviceId) {
-      const inspected = this.describePayload(payload);
-      this.logger.warn(`Discarding ingest payload without device_id. Observed structure: ${inspected}`);
-      throw new BadRequestException('Invalid payload, missing device_id');
+    let device;
+    const macAddress = this.extractMacAddress(payload);
+
+    if (macAddress) {
+      try {
+        device = await this.dispositivosService.findOneByMac(macAddress);
+      } catch (err) {
+        if (err instanceof NotFoundException) {
+          this.logger.warn(`Device with MAC ${macAddress} not found; falling back to device_id lookup.`);
+        } else {
+          throw err;
+        }
+      }
     }
 
-    let device;
-    try {
-      device = await this.dispositivosService.findOneById(deviceId);
-    } catch (err) {
-      throw new NotFoundException(`Device ${deviceId} not found`);
+    if (!device) {
+      const deviceId = this.extractDeviceId(payload);
+      if (!deviceId) {
+        const inspected = this.describePayload(payload);
+        this.logger.warn(`Discarding ingest payload without device identifier. Observed structure: ${inspected}`);
+        throw new BadRequestException('Invalid payload, missing device identifier');
+      }
+
+      try {
+        device = await this.dispositivosService.findOneById(deviceId);
+      } catch (err) {
+        throw new NotFoundException(`Device ${deviceId} not found`);
+      }
     }
 
     let zone: Zone | null = null;
@@ -88,8 +104,8 @@ export class DetectionsIngestService {
       const isPresent = (item.is_present ?? item.presente ?? true) as boolean;
 
       const newDet = this.detRepo.create({
-        tag: { id: tag.id } as any,
-        device: { id: device.id } as any,
+  tag: { id: tag.id } as any,
+  device: { id: device.id } as any,
         distance,
         rssi,
         is_present: isPresent,
@@ -173,6 +189,39 @@ export class DetectionsIngestService {
       const parsed = Number(trimmed);
       return Number.isNaN(parsed) ? null : parsed;
     }
+    return null;
+  }
+
+  private extractMacAddress(payload: any): string | null {
+    const candidates: any[] = [
+      payload?.mac_address,
+      payload?.macAddress,
+      payload?.device?.mac_address,
+      payload?.device?.macAddress,
+      payload?.device?.mac,
+    ];
+
+    for (const value of candidates) {
+      if (typeof value === 'string' && value.trim().length > 0) {
+        return value.trim();
+      }
+    }
+
+    if (Array.isArray(payload?.detections)) {
+      for (const detection of payload.detections) {
+        const nestedCandidates = [
+          detection?.mac_address,
+          detection?.macAddress,
+          detection?.device_mac,
+        ];
+        for (const value of nestedCandidates) {
+          if (typeof value === 'string' && value.trim().length > 0) {
+            return value.trim();
+          }
+        }
+      }
+    }
+
     return null;
   }
 
