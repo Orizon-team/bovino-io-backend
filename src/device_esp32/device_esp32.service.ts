@@ -3,11 +3,13 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { DispositivoESP32 } from './device_esp32.entity';
 import { CreateDispositivoInput } from './dto/create-device_esp32.input';
+import { DeviceEsp32Gateway } from './device_esp32.gateway';
 
 @Injectable()
 export class DispositivosService {
   constructor(
     @InjectRepository(DispositivoESP32) private repo: Repository<DispositivoESP32>,
+    private readonly gateway: DeviceEsp32Gateway,
   ) {}
 
   async create(input: CreateDispositivoInput): Promise<DispositivoESP32> {
@@ -58,8 +60,10 @@ export class DispositivosService {
     // Return the device with relations loaded so GraphQL can resolve nested fields
     // (e.g., zone.name which is non-nullable). If the relation doesn't exist, it
     // will be null and GraphQL will return null for `zone`.
-    const withRelations = await this.repo.findOne({ where: { id: saved.id }, relations: ['zone'] });
-    return withRelations ?? saved;
+  const withRelations = await this.repo.findOne({ where: { id: saved.id }, relations: ['zone'] });
+  const result = withRelations ?? saved;
+  this.gateway.emitUpdated(result);
+  return result;
   }
 
   async findAll(): Promise<DispositivoESP32[]> {
@@ -71,6 +75,25 @@ export class DispositivosService {
     const d = await this.repo.findOne({ where: { id }, relations: ['zone'] });
     if (!d) throw new NotFoundException('Dispositivo no encontrado');
     return d;
+  }
+
+  async findOneByMac(macAddress: string): Promise<DispositivoESP32> {
+    const normalized = macAddress.trim().toLowerCase();
+    if (!normalized) {
+      throw new NotFoundException('MAC address vacío');
+    }
+
+    const device = await this.repo
+      .createQueryBuilder('device')
+      .leftJoinAndSelect('device.zone', 'zone')
+      .where('LOWER(device.mac_address) = :mac', { mac: normalized })
+      .getOne();
+
+    if (!device) {
+      throw new NotFoundException(`Dispositivo no encontrado para MAC ${macAddress}`);
+    }
+
+    return device;
   }
 
   async findByZone(zoneId: number): Promise<DispositivoESP32[]> {
@@ -112,8 +135,10 @@ export class DispositivosService {
     }
 
     const saved = await this.repo.save(device);
-    const withRelations = await this.repo.findOne({ where: { id: saved.id }, relations: ['zone'] });
-    return withRelations ?? saved;
+  const withRelations = await this.repo.findOne({ where: { id: saved.id }, relations: ['zone'] });
+  const result = withRelations ?? saved;
+  this.gateway.emitUpdated(result);
+  return result;
   }
 
   async remove(id: number): Promise<boolean> {
