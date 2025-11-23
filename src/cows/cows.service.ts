@@ -16,6 +16,20 @@ export class VacasService {
     const raw: any = input as any;
     const payload: any = {};
 
+    const rawId = raw.id ?? raw.id_vaca ?? raw.id_cow;
+    if (rawId === undefined || rawId === null) {
+      throw new ConflictException('id is required');
+    }
+    const idValue = Number(rawId);
+    if (!Number.isInteger(idValue)) {
+      throw new ConflictException('id must be an integer');
+    }
+    const existing = await this.vacasRepo.findOne({ where: { id: idValue } });
+    if (existing) {
+      throw new ConflictException('Ya existe una vaca con ese id');
+    }
+    payload.id = idValue;
+
     // tag id: accept tag_id (PK) or tag object
     const tagId = raw.tag_id ?? raw.tag ?? (raw.tag && raw.tag.id);
     // name: accept name or nombre
@@ -94,48 +108,82 @@ export class VacasService {
 
   async update(id: number, input: Partial<Vaca> & any): Promise<Vaca> {
     const v = await this.findOneById(id);
+    const raw: any = input as any;
+    let targetId: number = v.id;
+
+    if (raw.id !== undefined || raw.id_vaca !== undefined || raw.nuevo_id !== undefined) {
+      const requested = raw.id ?? raw.id_vaca ?? raw.nuevo_id;
+      if (requested === null) {
+        throw new ConflictException('id no puede ser null');
+      }
+      const numericId = Number(requested);
+      if (!Number.isInteger(numericId)) {
+        throw new ConflictException('id debe ser un entero');
+      }
+      if (numericId !== v.id) {
+        const duplicate = await this.vacasRepo.findOne({ where: { id: numericId } });
+        if (duplicate) {
+          throw new ConflictException('Ya existe una vaca con ese id');
+        }
+        targetId = numericId;
+      }
+    }
 
     // map possible input fields (accept spanish/english)
-    if (input.nombre !== undefined) v.name = input.nombre;
-    if (input.name !== undefined) v.name = input.name;
+    if (raw.nombre !== undefined) v.name = raw.nombre;
+    if (raw.name !== undefined) v.name = raw.name;
 
-    if (input.comida_preferida !== undefined) v.favorite_food = input.comida_preferida;
-    if (input.favorite_food !== undefined) v.favorite_food = input.favorite_food;
+    if (raw.comida_preferida !== undefined) v.favorite_food = raw.comida_preferida;
+    if (raw.favorite_food !== undefined) v.favorite_food = raw.favorite_food;
 
-    if (input.id_usuario !== undefined) {
-      if (input.id_usuario === null) v.user = undefined as any;
+    if (raw.id_usuario !== undefined) {
+      if (raw.id_usuario === null) v.user = undefined as any;
       else {
         const userRepo = this.vacasRepo.manager.getRepository('User');
-        const user = await userRepo.findOne({ where: { id_user: Number(input.id_usuario) } });
+        const user = await userRepo.findOne({ where: { id_user: Number(raw.id_usuario) } });
         if (!user) throw new NotFoundException('User no encontrado');
         v.user = user as any;
       }
     }
-    if (input.id_user !== undefined) {
-      if (input.id_user === null) v.user = undefined as any;
+    if (raw.id_user !== undefined) {
+      if (raw.id_user === null) v.user = undefined as any;
       else {
         const userRepo = this.vacasRepo.manager.getRepository('User');
-        const user = await userRepo.findOne({ where: { id_user: Number(input.id_user) } });
+        const user = await userRepo.findOne({ where: { id_user: Number(raw.id_user) } });
         if (!user) throw new NotFoundException('User no encontrado');
         v.user = user as any;
       }
     }
 
-    if (input.tag_id !== undefined) {
+    if (raw.tag_id !== undefined) {
       // find tag by PK or id_tag
       const tagRepo = this.vacasRepo.manager.getRepository('Tag');
-      let tag = await tagRepo.findOne({ where: { id: Number(input.tag_id) } });
-      if (!tag) tag = await tagRepo.findOne({ where: { id_tag: String(input.tag_id) } });
+      let tag = await tagRepo.findOne({ where: { id: Number(raw.tag_id) } });
+      if (!tag) tag = await tagRepo.findOne({ where: { id_tag: String(raw.tag_id) } });
       if (!tag) throw new NotFoundException('Tag no encontrado');
-  v.tag = tag as any;
+      v.tag = tag as any;
+      if (tag.id_tag) {
+        v.ear_tag = tag.id_tag;
+      }
     }
 
-    if (input.imagen !== undefined) v.image = input.imagen ? encryptText(input.imagen) : undefined;
-    if (input.image !== undefined) v.image = input.image ? encryptText(input.image) : undefined;
+    if (raw.imagen !== undefined) v.image = raw.imagen ? encryptText(raw.imagen) : undefined;
+    if (raw.image !== undefined) v.image = raw.image ? encryptText(raw.image) : undefined;
 
     const saved = await this.vacasRepo.save(v);
-    if (saved.image) saved.image = decryptText(saved.image);
-    return saved;
+    let finalId = saved.id;
+
+    if (targetId !== v.id) {
+      await this.vacasRepo
+        .createQueryBuilder()
+        .update(Vaca)
+        .set({ id: targetId })
+        .where('id = :currentId', { currentId: saved.id })
+        .execute();
+      finalId = targetId;
+    }
+
+    return this.findOneById(finalId);
   }
 
   async remove(id: number): Promise<boolean> {

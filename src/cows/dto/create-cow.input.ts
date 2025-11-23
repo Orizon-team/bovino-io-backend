@@ -1,15 +1,19 @@
 import { InputType, Field, Int } from '@nestjs/graphql';
-import { IsOptional, IsString, Length } from 'class-validator';
+import { IsInt, IsOptional, IsString, Length } from 'class-validator';
 
 @InputType()
 export class CreateVacaInput {
-  @Field()
-  @IsString()
-  @Length(1, 100)
+  @Field(() => Int)
+  @IsInt()
+  id: number;
+
+  @Field(() => Int)
+  @IsInt()
   tag_id: number;
 
   @Field()
   @IsString()
+  @Length(1, 100)
   nombre: string;
 
   @Field(() => Int, { nullable: true })
