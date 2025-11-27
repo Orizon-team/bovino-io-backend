@@ -6,6 +6,8 @@ import { TagsService } from '../tags/tags.service';
 import { DispositivosService } from '../device_esp32/device_esp32.service';
 import { ZoneService } from '../zone/zone.service';
 import { Zone } from '../zone/zone.entity';
+import { Preferencia } from '../preference/preference.entity';
+import { Vaca } from '../cows/cow.entity';
 
 @Injectable()
 export class DetectionsIngestService {
@@ -13,6 +15,8 @@ export class DetectionsIngestService {
 
   constructor(
     @InjectRepository(Deteccion) private readonly detRepo: Repository<Deteccion>,
+    @InjectRepository(Preferencia) private readonly prefRepo: Repository<Preferencia>,
+    @InjectRepository(Vaca) private readonly cowsRepo: Repository<Vaca>,
     private readonly tagsService: TagsService,
     private readonly dispositivosService: DispositivosService,
     private readonly zoneService: ZoneService,
@@ -104,8 +108,8 @@ export class DetectionsIngestService {
       const isPresent = (item.is_present ?? item.presente ?? true) as boolean;
 
       const newDet = this.detRepo.create({
-  tag: { id: tag.id } as any,
-  device: { id: device.id } as any,
+        tag: { id: tag.id } as any,
+        device: { id: device.id } as any,
         distance,
         rssi,
         is_present: isPresent,
@@ -114,10 +118,52 @@ export class DetectionsIngestService {
       } as Partial<Deteccion>);
 
       const saved = await this.detRepo.save(newDet);
+      const visitTimestamp = saved.last_seen ?? lastSeen ?? firstSeen ?? new Date();
+      try {
+        await this.handlePreferenceUpdate(tag.id, zone ?? device.zone ?? null, visitTimestamp);
+      } catch (prefError) {
+        this.logger.warn(`Failed to update preference for tag ${tagIdStr}: ${prefError instanceof Error ? prefError.message : prefError}`);
+      }
       results.push(saved);
     }
 
     return { count: results.length, detections: results };
+  }
+
+  private async handlePreferenceUpdate(tagId: number, zone: Zone | null, visitDate: Date) {
+    if (!visitDate || Number.isNaN(visitDate.getTime())) {
+      visitDate = new Date();
+    }
+
+    const cow = await this.cowsRepo.findOne({ where: { tag: { id: tagId } }, relations: ['tag'] });
+    if (!cow) {
+      return;
+    }
+
+    if (!zone) {
+      this.logger.warn(`Skipping preference update for cow ${cow.id} because device zone is missing.`);
+      return;
+    }
+
+    const zoneId = zone.id;
+
+    let preference: Preferencia | null = null;
+    preference = await this.prefRepo.findOne({ where: { cow: { id: cow.id }, zone: { id: zoneId } }, relations: ['cow', 'zone'] });
+
+    if (!preference) {
+      const newPref = this.prefRepo.create({
+        cow,
+        zone,
+        visit_count: 1,
+        last_visit: visitDate,
+      });
+      await this.prefRepo.save(newPref);
+      return;
+    }
+
+    preference.visit_count = (preference.visit_count ?? 0) + 1;
+    preference.last_visit = visitDate;
+    await this.prefRepo.save(preference);
   }
 
   private toDate(value: any): Date | null {
