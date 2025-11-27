@@ -4,11 +4,15 @@ import { VacasService } from './cows.service';
 import { VacasResolver } from './cows.resolver';
 import { VacasController } from './cows.controller';
 import { Vaca } from './cow.entity';
+import { Deteccion } from '../detection/detection.entity';
+import { Tag } from '../tags/tag.entity';
+import { CowRealtimeService } from './cow-realtime.service';
+import { CowRealtimeGateway } from './cow-realtime.gateway';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Vaca])],
+  imports: [TypeOrmModule.forFeature([Vaca, Deteccion, Tag])],
   controllers: [VacasController],
-  providers: [VacasService, VacasResolver],
-  exports: [VacasService],
+  providers: [VacasService, VacasResolver, CowRealtimeService, CowRealtimeGateway],
+  exports: [VacasService, CowRealtimeService, CowRealtimeGateway],
 })
 export class VacasModule {}

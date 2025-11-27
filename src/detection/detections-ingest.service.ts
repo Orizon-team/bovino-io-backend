@@ -8,6 +8,7 @@ import { ZoneService } from '../zone/zone.service';
 import { Zone } from '../zone/zone.entity';
 import { Preferencia } from '../preference/preference.entity';
 import { Vaca } from '../cows/cow.entity';
+import { CowRealtimeGateway } from '../cows/cow-realtime.gateway';
 
 @Injectable()
 export class DetectionsIngestService {
@@ -20,6 +21,7 @@ export class DetectionsIngestService {
     private readonly tagsService: TagsService,
     private readonly dispositivosService: DispositivosService,
     private readonly zoneService: ZoneService,
+    private readonly cowRealtimeGateway: CowRealtimeGateway,
   ) {}
 
   async processPayload(payload: any) {
@@ -120,7 +122,10 @@ export class DetectionsIngestService {
       const saved = await this.detRepo.save(newDet);
       const visitTimestamp = saved.last_seen ?? lastSeen ?? firstSeen ?? new Date();
       try {
-        await this.handlePreferenceUpdate(tag.id, zone ?? device.zone ?? null, visitTimestamp);
+        const prefContext = await this.handlePreferenceUpdate(tag.id, zone ?? device.zone ?? null, visitTimestamp);
+        if (prefContext) {
+          await this.safeEmitCowUpdate(prefContext.cow.id);
+        }
       } catch (prefError) {
         this.logger.warn(`Failed to update preference for tag ${tagIdStr}: ${prefError instanceof Error ? prefError.message : prefError}`);
       }
@@ -130,19 +135,19 @@ export class DetectionsIngestService {
     return { count: results.length, detections: results };
   }
 
-  private async handlePreferenceUpdate(tagId: number, zone: Zone | null, visitDate: Date) {
+  private async handlePreferenceUpdate(tagId: number, zone: Zone | null, visitDate: Date): Promise<{ cow: Vaca; zone: Zone | null } | null> {
     if (!visitDate || Number.isNaN(visitDate.getTime())) {
       visitDate = new Date();
     }
 
     const cow = await this.cowsRepo.findOne({ where: { tag: { id: tagId } }, relations: ['tag'] });
     if (!cow) {
-      return;
+      return null;
     }
 
     if (!zone) {
       this.logger.warn(`Skipping preference update for cow ${cow.id} because device zone is missing.`);
-      return;
+      return { cow, zone: null };
     }
 
     const zoneId = zone.id;
@@ -158,12 +163,21 @@ export class DetectionsIngestService {
         last_visit: visitDate,
       });
       await this.prefRepo.save(newPref);
-      return;
+      return { cow, zone };
     }
 
     preference.visit_count = (preference.visit_count ?? 0) + 1;
     preference.last_visit = visitDate;
     await this.prefRepo.save(preference);
+    return { cow, zone };
+  }
+
+  private async safeEmitCowUpdate(cowId: number) {
+    try {
+      await this.cowRealtimeGateway.emitCowUpdate(cowId);
+    } catch (err) {
+      this.logger.warn(`Failed to emit cow ${cowId} websocket update: ${err instanceof Error ? err.message : err}`);
+    }
   }
 
   private toDate(value: any): Date | null {

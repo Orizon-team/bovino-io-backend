@@ -11,9 +11,10 @@ import { DetectionsIngestService } from './detections-ingest.service';
 import { MqttDetectionsListener } from './mqtt-detections.listener';
 import { Preferencia } from '../preference/preference.entity';
 import { Vaca } from '../cows/cow.entity';
+import { VacasModule } from '../cows/cows.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Deteccion, Preferencia, Vaca]), TagsModule, DispositivosModule, ZoneModule],
+  imports: [TypeOrmModule.forFeature([Deteccion, Preferencia, Vaca]), TagsModule, DispositivosModule, ZoneModule, VacasModule],
   controllers: [DetectionsController],
   providers: [DeteccionesService, DeteccionesResolver, DetectionsIngestService, MqttDetectionsListener],
   exports: [DeteccionesService],
