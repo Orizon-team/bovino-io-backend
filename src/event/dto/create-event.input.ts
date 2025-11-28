@@ -1,5 +1,5 @@
 import { InputType, Field, Int } from '@nestjs/graphql';
-import { IsOptional, IsString } from 'class-validator';
+import { IsOptional, IsString, IsInt } from 'class-validator';
 
 @InputType()
 export class CreateEventoInput {
@@ -28,6 +28,11 @@ export class CreateEventoInput {
   @Field(() => Int, { nullable: true })
   @IsOptional()
   id_device?: number;
+
+  @Field(() => Int, { nullable: true })
+  @IsOptional()
+  @IsInt()
+  id_user?: number;
 
   @Field({ nullable: true })
   @IsOptional()

@@ -13,6 +13,11 @@ export class UpdateEventoInput {
   @IsString()
   Event_Description?: string;
 
+  @Field({ nullable: true })
+  @IsOptional()
+  @IsString()
+  Event_Code?: string;
+
   @Field(() => Int, { nullable: true })
   @IsOptional()
   @IsInt()
@@ -27,4 +32,19 @@ export class UpdateEventoInput {
   @IsOptional()
   @IsInt()
   id_device?: number | null;
+
+  @Field(() => Int, { nullable: true })
+  @IsOptional()
+  @IsInt()
+  id_user?: number | null;
+
+  @Field({ nullable: true })
+  @IsOptional()
+  @IsString()
+  date?: string;
+
+  @Field({ nullable: true })
+  @IsOptional()
+  @IsString()
+  time?: string;
 }

@@ -18,6 +18,11 @@ export class EventosResolver {
     return this.eventosService.findOneById(id);
   }
 
+  @Query(() => [Evento], { name: 'eventosByUser' })
+  eventosByUser(@Args('id_user', { type: () => Int }) id_user: number) {
+    return this.eventosService.findByUserId(id_user);
+  }
+
   @Mutation(() => Evento)
   createEvento(@Args('input') input: CreateEventoInput) {
     return this.eventosService.create(input);

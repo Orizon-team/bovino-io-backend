@@ -3,6 +3,7 @@ import { ObjectType, Field, Int } from '@nestjs/graphql';
 import { Vaca } from '../cows/cow.entity';
 import { Tag } from '../tags/tag.entity';
 import { DispositivoESP32 } from '../device_esp32/device_esp32.entity';
+import { User } from '../users/user.entity';
 
 @ObjectType()
 @Entity({ name: 'Event' })
@@ -79,5 +80,15 @@ export class Evento {
   @Field(() => DispositivoESP32, { nullable: true, name: 'dispositivo' })
   get dispositivo(): DispositivoESP32 | undefined {
     return this.device;
+  }
+
+  @Field(() => User, { nullable: true })
+  @ManyToOne(() => User, { nullable: true, onUpdate: 'CASCADE', onDelete: 'SET NULL' })
+  @JoinColumn({ name: 'id_user' })
+  user?: User;
+
+  @Field(() => User, { nullable: true, name: 'usuario' })
+  get usuario(): User | undefined {
+    return this.user;
   }
 }

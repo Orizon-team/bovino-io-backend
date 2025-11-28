@@ -44,17 +44,33 @@ export class EventosService {
       payload.device = device as any;
     }
 
+    const userIdRaw = raw.id_user ?? raw.id_usuario ?? raw.user_id;
+    if (userIdRaw !== undefined && userIdRaw !== null) {
+      const userRepo = this.repo.manager.getRepository('User');
+      const user = await userRepo.findOne({ where: { id_user: Number(userIdRaw) } });
+      if (!user) throw new NotFoundException('Usuario no encontrado');
+      payload.user = user as any;
+    }
+
     const e = this.repo.create(payload as Partial<Evento>);
     const saved = await this.repo.save(e);
     return this.findOneById(saved.id_event) as Promise<Evento>;
   }
 
   async findAll(): Promise<Evento[]> {
-    return this.repo.find({ relations: ['cow', 'tag', 'device'] });
+    return this.repo.find({ relations: ['cow', 'tag', 'device', 'user'] });
   }
 
   async findOneById(id: number): Promise<Evento | null> {
-    return this.repo.findOne({ where: { id_event: id }, relations: ['cow', 'tag', 'device'] });
+    return this.repo.findOne({ where: { id_event: id }, relations: ['cow', 'tag', 'device', 'user'] });
+  }
+
+  async findByUserId(userId: number): Promise<Evento[]> {
+    return this.repo.find({
+      where: { user: { id_user: Number(userId) } },
+      relations: ['cow', 'tag', 'device', 'user'],
+      order: { date: 'DESC', time: 'DESC' },
+    });
   }
 
   async update(id: number, input: Partial<Evento> & any): Promise<Evento> {
@@ -74,6 +90,16 @@ export class EventosService {
   if (input.id_cow !== undefined) e.cow = input.id_cow === null ? undefined as any : ({ id: input.id_cow } as any);
   if (input.id_tag !== undefined) e.tag = input.id_tag === null ? undefined as any : ({ id: input.id_tag } as any);
   if (input.id_device !== undefined) e.device = input.id_device === null ? undefined as any : ({ id: input.id_device } as any);
+  if (input.id_user !== undefined) {
+    if (input.id_user === null) {
+      e.user = undefined as any;
+    } else {
+      const userRepo = this.repo.manager.getRepository('User');
+      const user = await userRepo.findOne({ where: { id_user: Number(input.id_user) } });
+      if (!user) throw new NotFoundException('Usuario no encontrado');
+      e.user = user as any;
+    }
+  }
 
     const saved = await this.repo.save(e);
     return this.findOneById(saved.id_event) as Promise<Evento>;
