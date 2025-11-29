@@ -5,17 +5,41 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   // Configure CORS to allow frontend origin(s) and preflight requests
-  const allowedOrigins = [
-    process.env.FRONTEND_ORIGIN ?? 'http://localhost:5173',
-    process.env.BACKEND_URL ?? `https://bovino-io-backend.onrender.com`,
+  const defaultOrigins = [
+    process.env.FRONTEND_ORIGIN,
+    process.env.BACKEND_URL,
+    'http://localhost:5173',
   ];
+
+  const extraOrigins = (process.env.CORS_ALLOWED_ORIGINS ?? '')
+    .split(',')
+    .map((origin) => origin.trim())
+    .filter(Boolean);
+
+  const allowedOrigins = new Set([...defaultOrigins, ...extraOrigins].filter(Boolean));
+
+  const allowAllOrigins = allowedOrigins.has('*');
 
   app.enableCors({
     origin: (origin, callback) => {
       // allow non-browser requests (like curl, server-to-server) when origin is undefined
-      if (!origin) return callback(null, true);
-      if (allowedOrigins.includes(origin)) return callback(null, true);
-      callback(new Error('CORS policy: origin not allowed'));
+      if (!origin || allowAllOrigins) return callback(null, true);
+
+      for (const allowedOrigin of allowedOrigins) {
+        if (allowedOrigin === origin) return callback(null, true);
+
+        // allow regex-like patterns declared as /pattern/i style strings
+        if (allowedOrigin.startsWith('/') && allowedOrigin.endsWith('/')) {
+          const pattern = allowedOrigin.slice(1, -1);
+          try {
+            if (new RegExp(pattern).test(origin)) return callback(null, true);
+          } catch (error) {
+            // ignore invalid regex definitions and continue
+          }
+        }
+      }
+
+      callback(new Error(`CORS policy: origin ${origin} not allowed`));
     },
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     allowedHeaders: 'Content-Type, Accept, Authorization',
