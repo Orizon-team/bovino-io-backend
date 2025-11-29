@@ -12,6 +12,7 @@ async function bootstrap() {
     process.env.FRONTEND_ORIGIN,
     process.env.BACKEND_URL,
     'http://localhost:5173',
+    'https://6a4wrs-ip-209-178-128-69.tunnelmole.net',
   ].filter(isNonEmptyString);
 
   const extraOrigins = (process.env.CORS_ALLOWED_ORIGINS ?? '')
