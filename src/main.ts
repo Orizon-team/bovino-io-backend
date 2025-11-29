@@ -5,18 +5,21 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   // Configure CORS to allow frontend origin(s) and preflight requests
+  const isNonEmptyString = (value: unknown): value is string =>
+    typeof value === 'string' && value.trim().length > 0;
+
   const defaultOrigins = [
     process.env.FRONTEND_ORIGIN,
     process.env.BACKEND_URL,
     'http://localhost:5173',
-  ];
+  ].filter(isNonEmptyString);
 
   const extraOrigins = (process.env.CORS_ALLOWED_ORIGINS ?? '')
     .split(',')
     .map((origin) => origin.trim())
-    .filter(Boolean);
+    .filter(isNonEmptyString);
 
-  const allowedOrigins = new Set([...defaultOrigins, ...extraOrigins].filter(Boolean));
+  const allowedOrigins = new Set<string>([...defaultOrigins, ...extraOrigins]);
 
   const allowAllOrigins = allowedOrigins.has('*');
 
