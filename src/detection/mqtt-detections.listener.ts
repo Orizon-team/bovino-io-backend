@@ -161,22 +161,28 @@ export class MqttDetectionsListener implements OnModuleInit, OnModuleDestroy {
       return;
     }
 
+    this.logger.log(`register_beacon recibido para zone_id=${zoneId} con ${macs.length} MAC(s).`);
+
     const tags: Tag[] = [];
     for (const mac of macs) {
       const tag = await this.tagsService.findByMacAddress(mac);
       if (!tag) {
         await this.createErrorEvent(userId, `No se encontró un tag para la MAC ${mac}`, 'TAG_NOT_FOUND');
+        this.logger.warn(`No se encontró tag para la MAC ${mac} en zone_id=${zoneId}.`);
         continue;
       }
       tags.push(tag);
     }
 
     if (!tags.length) {
-      this.logger.warn(`register_beacon payload macs no corresponden a tags registrados.`);
+      this.logger.warn(`register_beacon payload macs no corresponden a tags registrados (zone_id=${zoneId}).`);
       return;
     }
 
     const activeTags = tags.filter((tag) => tag.status === 'active');
+    if (activeTags.length) {
+      this.logger.log(`Se ignoraron ${activeTags.length} tag(s) ya activos para zone_id=${zoneId}.`);
+    }
     if (activeTags.length === tags.length) {
       // nothing to do, all tags already active
       return;
@@ -207,11 +213,13 @@ export class MqttDetectionsListener implements OnModuleInit, OnModuleDestroy {
 
     if (unregisteredTags.length === 0) {
       // maybe tags already processing/active — nothing to do
+      this.logger.log(`Todos los tags recibidos ya están en procesamiento o activos (zone_id=${zoneId}).`);
       return;
     }
 
     const targetTag = unregisteredTags[0];
     const updatedTag = await this.tagsService.update(targetTag.id, { status: 'processing' });
+    this.logger.log(`Tag ${updatedTag.id} (${updatedTag.mac_address ?? 'sin MAC'}) marcado como processing para zone_id=${zoneId}.`);
     this.scheduleProcessingTimeout(updatedTag, zone, userId);
 
     if (!userId) {
@@ -232,7 +240,7 @@ export class MqttDetectionsListener implements OnModuleInit, OnModuleDestroy {
     };
 
     this.cowGateway.emitRegistrationRequest(userId, requestPayload);
-    this.logger.log(`Tag ${updatedTag.id} marcado como processing y orden de registro emitida para el usuario ${userId}.`);
+    this.logger.log(`Orden de registro emitida para el usuario ${userId} (tag ${updatedTag.id}).`);
   }
 
   private scheduleProcessingTimeout(tag: Tag, zone: Zone, userId?: number) {
