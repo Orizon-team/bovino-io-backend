@@ -33,6 +33,7 @@ input CreateEventoInput {
   id_cow: Int
   id_device: Int
   id_tag: Int
+  id_user: Int
   time: String
 }
 
@@ -60,10 +61,11 @@ input CreateUserInput {
 
 input CreateVacaInput {
   comida_preferida: String
+  id: Int!
   id_usuario: Int
   imagen: String
   nombre: String!
-  tag_id: Float!
+  tag_id: Int!
 }
 
 input CreateZoneInput {
@@ -115,6 +117,8 @@ type Evento {
   id_event: Int!
   tag: Tag
   time: String
+  user: User
+  usuario: User
   vaca: Vaca
 }
 
@@ -168,6 +172,7 @@ type Query {
   dispositivosByZone(id_zone: Int!): [DispositivoESP32!]!
   evento(id: Int!): Evento
   eventos: [Evento!]!
+  eventosByUser(id_user: Int!): [Evento!]!
   preferencia(id: Int!): Preferencia!
   preferencias: [Preferencia!]!
   tag(id: Int!): Tag!
@@ -216,11 +221,15 @@ input UpdateDispositivoInput {
 }
 
 input UpdateEventoInput {
+  Event_Code: String
   Event_Description: String
   Event_Type: String
+  date: String
   id_cow: Int
   id_device: Int
   id_tag: Int
+  id_user: Int
+  time: String
 }
 
 input UpdatePreferenciaInput {
@@ -247,6 +256,7 @@ input UpdateUserInput {
 
 input UpdateVacaInput {
   comida_preferida: String
+  id: Int
   id_usuario: Int
   imagen: String
   nombre: String
