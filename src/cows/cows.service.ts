@@ -71,6 +71,11 @@ export class VacasService {
 
     const v = this.vacasRepo.create(payload as Partial<Vaca>);
     const saved = await this.vacasRepo.save(v);
+
+    if (tag && tag.status !== 'active') {
+      tag.status = 'active';
+      await tagRepo.save(tag);
+    }
     // decrypt image for API
     if (saved.image) saved.image = decryptText(saved.image);
     return saved;

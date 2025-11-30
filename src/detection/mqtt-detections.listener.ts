@@ -2,16 +2,26 @@ import { Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/commo
 import { connect, IClientOptions, MqttClient } from 'mqtt';
 import { DetectionsIngestService } from './detections-ingest.service';
 import { TagsService } from '../tags/tags.service';
-import { CreateTagInput } from '../tags/dto/create-tag.input';
+import { ZoneService } from '../zone/zone.service';
+import { EventosService } from '../event/event.service';
+import { CowRealtimeGateway, CowRegistrationRequestPayload } from '../cows/cow-realtime.gateway';
+import { Zone } from '../zone/zone.entity';
+import { Tag } from '../tags/tag.entity';
 
 @Injectable()
 export class MqttDetectionsListener implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(MqttDetectionsListener.name);
   private client?: MqttClient;
+  private detectionTopic?: string;
+  private registerTopic?: string;
+  private readonly processingTimers = new Map<number, NodeJS.Timeout>();
 
   constructor(
     private readonly ingestService: DetectionsIngestService,
     private readonly tagsService: TagsService,
+    private readonly zoneService: ZoneService,
+    private readonly eventosService: EventosService,
+    private readonly cowGateway: CowRealtimeGateway,
   ) {}
 
   onModuleInit() {
@@ -27,6 +37,9 @@ export class MqttDetectionsListener implements OnModuleInit, OnModuleDestroy {
     const password = process.env.MQTT_PASSWORD ?? 'UzObFn33';
     const topic = process.env.MQTT_TOPIC ?? 'bovino_io/detections';
     const registerTopic = process.env.MQTT_TOPIC_REGISTER ?? process.env.MQTT_TOPIC_REGISTER_BEACON ?? 'bovino_io/register_beacon';
+
+    this.detectionTopic = topic;
+    this.registerTopic = registerTopic;
 
     if (!host || (!topic && !registerTopic)) {
       this.logger.warn('MQTT host or topics not configured; skipping MQTT ingestion.');
@@ -71,11 +84,11 @@ export class MqttDetectionsListener implements OnModuleInit, OnModuleDestroy {
     this.client.on('message', async (_topic, payload) => {
       const raw = payload.toString();
       try {
-        if (_topic === topic) {
+        if (_topic === this.detectionTopic) {
           const data = JSON.parse(raw);
           await this.ingestService.processPayload(data);
           this.logger.debug(`Processed MQTT detection payload (${raw.length} bytes).`);
-        } else if (_topic === registerTopic) {
+        } else if (_topic === this.registerTopic) {
           await this.handleRegisterBeacon(raw);
         } else {
           this.logger.debug(`Received MQTT message on unexpected topic ${_topic}`);
@@ -98,6 +111,10 @@ export class MqttDetectionsListener implements OnModuleInit, OnModuleDestroy {
       this.client.end(true);
       this.client = undefined;
     }
+    for (const timeout of this.processingTimers.values()) {
+      clearTimeout(timeout);
+    }
+    this.processingTimers.clear();
   }
 
   private async handleRegisterBeacon(rawPayload: string) {
@@ -113,52 +130,142 @@ export class MqttDetectionsListener implements OnModuleInit, OnModuleDestroy {
       return;
     }
 
-    const idTag = this.extractIdTag(data);
-    if (!idTag) {
-      this.logger.warn(`register_beacon payload missing id_tag: ${rawPayload}`);
+    const zoneId = this.extractNumber(data, ['zone_id', 'zoneId']);
+    if (zoneId === undefined || zoneId === null) {
+      this.logger.warn(`register_beacon payload missing zone_id: ${rawPayload}`);
       return;
     }
 
-    const mac = this.extractString(data, ['mac_address', 'macAddress', 'mac']);
-    const location = this.extractString(data, ['current_location', 'location', 'zone', 'zone_name', 'zoneName']);
-    const status = this.extractString(data, ['status']) ?? 'unregistered';
-    const batteryRaw = this.extractNumber(data, ['battery_level', 'battery', 'batteryLevel']);
-    const lastTransmission = this.extractDate(data, ['last_transmission', 'lastTransmission', 'timestamp', 'time']);
+    let zone: Zone | null = null;
+    try {
+      zone = await this.zoneService.findOneById(Number(zoneId));
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      this.logger.warn(`Zone ${zoneId} not found for register_beacon payload: ${message}`);
+      return;
+    }
 
-    const existing = await this.tagsService.findByIdTag(idTag);
-    if (existing) {
-      const updatePayload: Record<string, any> = {};
-      if (mac !== undefined) updatePayload.mac_address = mac;
-      if (location !== undefined) updatePayload.current_location = location;
-      if (status !== undefined) updatePayload.status = status;
-      if (batteryRaw !== undefined) updatePayload.battery_level = batteryRaw;
-      if (lastTransmission !== undefined) updatePayload.last_transmission = lastTransmission;
+    const userId = zone.user?.id_user;
+    const macsRaw = Array.isArray(data.macs) ? data.macs : [];
+    if (!macsRaw.length) {
+      this.logger.warn(`register_beacon payload missing macs array: ${rawPayload}`);
+      return;
+    }
 
-      if (Object.keys(updatePayload).length === 0) {
-        this.logger.debug(`register_beacon payload for ${idTag} contained no updatable fields.`);
-        return;
+    const macs = macsRaw
+      .map((value: any) => (typeof value === 'string' ? value.trim() : String(value ?? '').trim()))
+      .filter((mac: string) => mac.length > 0);
+
+    if (!macs.length) {
+      this.logger.warn(`register_beacon payload contains empty macs entries.`);
+      return;
+    }
+
+    const tags: Tag[] = [];
+    for (const mac of macs) {
+      const tag = await this.tagsService.findByMacAddress(mac);
+      if (!tag) {
+        await this.createErrorEvent(userId, `No se encontró un tag para la MAC ${mac}`, 'TAG_NOT_FOUND');
+        continue;
       }
+      tags.push(tag);
+    }
 
-      await this.tagsService.update(existing.id, updatePayload);
-      this.logger.log(`Updated tag ${idTag} from register_beacon MQTT topic.`);
+    if (!tags.length) {
+      this.logger.warn(`register_beacon payload macs no corresponden a tags registrados.`);
       return;
     }
 
-    const createInput: CreateTagInput = {
-      id_tag: idTag,
-      mac_address: mac,
-      current_location: location,
-      status,
-      battery_level: batteryRaw,
-      last_transmission: lastTransmission,
+    const activeTags = tags.filter((tag) => tag.status === 'active');
+    if (activeTags.length === tags.length) {
+      // nothing to do, all tags already active
+      return;
+    }
+
+    const processingTags = tags.filter((tag) => tag.status === 'processing');
+    const unregisteredTags = tags.filter((tag) => tag.status === 'unregistered');
+
+    if (processingTags.length > 0) {
+      if (unregisteredTags.length > 0) {
+        await this.createErrorEvent(
+          userId,
+          'Se detectó un tag sin registrar mientras existe otro en proceso de registro. Apaga los dispositivos adicionales e intenta nuevamente.',
+          'TAG_REG_CONFLICT',
+        );
+      }
+      return;
+    }
+
+    if (unregisteredTags.length > 1) {
+      await this.createErrorEvent(
+        userId,
+        'Se detectaron múltiples tags sin registrar al mismo tiempo. Debe haber solo un tag no registrado encendido para iniciar el registro.',
+        'TAG_MULTI_UNREGISTERED',
+      );
+      return;
+    }
+
+    if (unregisteredTags.length === 0) {
+      // maybe tags already processing/active — nothing to do
+      return;
+    }
+
+    const targetTag = unregisteredTags[0];
+    const updatedTag = await this.tagsService.update(targetTag.id, { status: 'processing' });
+    this.scheduleProcessingTimeout(updatedTag, zone, userId);
+
+    if (!userId) {
+      this.logger.warn(`Zone ${zone.id} no tiene usuario asociado; no se enviará orden de registro para tag ${updatedTag.id}.`);
+      return;
+    }
+
+    const requestPayload: CowRegistrationRequestPayload = {
+      tag_id: updatedTag.id,
+      id_tag: updatedTag.id_tag ?? null,
+      mac_address: updatedTag.mac_address ?? null,
+      zone: { id: zone.id, name: zone.name },
+      user: {
+        id_user: userId,
+        name: zone.user?.name ?? null,
+        email: zone.user?.email ?? null,
+      },
     };
 
-    await this.tagsService.create(createInput);
-    this.logger.log(`Created tag ${idTag} from register_beacon MQTT topic.`);
+    this.cowGateway.emitRegistrationRequest(userId, requestPayload);
+    this.logger.log(`Tag ${updatedTag.id} marcado como processing y orden de registro emitida para el usuario ${userId}.`);
   }
 
-  private extractIdTag(data: Record<string, any>): string | undefined {
-    return this.extractString(data, ['id_tag', 'idTag', 'tag_id', 'tagId', 'beacon_id', 'beaconId']);
+  private scheduleProcessingTimeout(tag: Tag, zone: Zone, userId?: number) {
+    const timeoutMs = Number(process.env.TAG_PROCESSING_TIMEOUT_MS ?? 10 * 60 * 1000);
+    if (this.processingTimers.has(tag.id)) {
+      clearTimeout(this.processingTimers.get(tag.id));
+    }
+
+    const timer = setTimeout(async () => {
+      this.processingTimers.delete(tag.id);
+      try {
+        const freshTag = await this.tagsService.findOneById(tag.id);
+        if (freshTag.status !== 'processing') {
+          return;
+        }
+        await this.tagsService.update(tag.id, { status: 'unregistered' });
+        const message = `Tiempo de registro agotado para el tag ${freshTag.id_tag ?? freshTag.mac_address ?? freshTag.id}. El estado se restableció a "unregistered".`;
+        await this.createErrorEvent(userId, message, 'TAG_REG_TIMEOUT');
+        if (userId) {
+          this.cowGateway.emitRegistrationTimeout(userId, {
+            tag_id: freshTag.id,
+            id_tag: freshTag.id_tag ?? null,
+            message,
+          });
+        }
+        this.logger.warn(message);
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
+        this.logger.error(`No se pudo revertir el tag ${tag.id} tras superar el tiempo de registro: ${message}`);
+      }
+    }, timeoutMs);
+
+    this.processingTimers.set(tag.id, timer);
   }
 
   private extractString(source: Record<string, any>, keys: string[]): string | undefined {
@@ -209,5 +316,30 @@ export class MqttDetectionsListener implements OnModuleInit, OnModuleDestroy {
       }
     }
     return undefined;
+  }
+
+  private async createErrorEvent(userId: number | undefined, description: string, code: string) {
+    if (!userId) {
+      this.logger.warn(`No se pudo registrar evento de error (${code}): usuario indefinido.`);
+      return;
+    }
+
+    const now = new Date();
+    const isoDate = now.toISOString();
+    const input = {
+      Event_Type: 'error',
+      Event_Description: description,
+      Event_Code: code,
+      id_user: userId,
+      date: isoDate.slice(0, 10),
+      time: isoDate.slice(11, 19),
+    } as any;
+
+    try {
+      await this.eventosService.create(input);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      this.logger.error(`No se pudo registrar evento de error (${code}) para el usuario ${userId}: ${message}`);
+    }
   }
 }

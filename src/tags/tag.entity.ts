@@ -26,7 +26,7 @@ export class Tag {
   last_transmission?: Date;
 
   @Field({ nullable: true })
-  @Column({ type: 'enum', enum: ['active', 'unregistered', 'error'], default: 'active', name: 'status' })
+  @Column({ type: 'enum', enum: ['active', 'unregistered', 'processing', 'error'], default: 'active', name: 'status' })
   status?: string;
 
   @Field({ nullable: true })
