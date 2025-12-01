@@ -104,4 +104,10 @@ export class EventosService {
     const saved = await this.repo.save(e);
     return this.findOneById(saved.id_event) as Promise<Evento>;
   }
+
+  async remove(id: number): Promise<boolean> {
+    const res = await this.repo.delete({ id_event: id } as any);
+    if (res.affected && res.affected > 0) return true;
+    throw new Error('Evento no encontrado');
+  }
 }
