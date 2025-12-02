@@ -29,6 +29,8 @@ export class VacasController {
       payload.tag_id = rawTag ? Number(rawTag) : undefined;
       // name: accept english 'name' or spanish 'nombre'
       payload.name = (body as any).name ?? (body as any).nombre;
+      // ear_tag: required identifier provided by user
+      payload.ear_tag = (body as any).ear_tag ?? (body as any).earTag ?? (body as any).numero_arete ?? (body as any).arete;
       // id_user: accept id_user or id_usuario
       const rawUser = (body as any).id_user ?? (body as any).id_usuario;
       payload.id_user = rawUser ? Number(rawUser) : undefined;
@@ -40,6 +42,7 @@ export class VacasController {
       // Validate required fields before calling service
       if (!payload.tag_id) throw new BadRequestException('tag_id is required');
       if (!payload.name) throw new BadRequestException('name is required');
+      if (!payload.ear_tag) throw new BadRequestException('ear_tag is required');
 
       return this.vacasService.create(payload);
     } catch (e) {

@@ -13,6 +13,11 @@ export class UpdateVacaInput {
   @IsString()
   nombre?: string;
 
+  @Field({ nullable: true })
+  @IsOptional()
+  @IsString()
+  ear_tag?: string;
+
   @Field(() => Int, { nullable: true })
   @IsOptional()
   @IsInt()

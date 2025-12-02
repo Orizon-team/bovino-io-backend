@@ -64,6 +64,7 @@ input CreateVacaInput {
   id_usuario: Int
   imagen: String
   nombre: String!
+  ear_tag: String!
   tag_id: Int!
 }
 
@@ -258,6 +259,7 @@ input UpdateVacaInput {
   id_usuario: Int
   imagen: String
   nombre: String
+  ear_tag: String
   tag_id: Int
 }
 

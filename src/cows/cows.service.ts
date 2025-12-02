@@ -23,6 +23,8 @@ export class VacasService {
     const tagId = raw.tag_id ?? raw.tag ?? (raw.tag && raw.tag.id);
     // name: accept name or nombre
     payload.name = raw.name ?? raw.nombre;
+    // ear_tag: explicit identifier for the cow
+    payload.ear_tag = raw.ear_tag ?? raw.earTag ?? raw.numero_arete ?? raw.arete;
     // id_user -> attach user relation if provided (validate existence)
     const userId = raw.id_user ?? raw.id_usuario;
     if (userId !== undefined && userId !== null) {
@@ -43,6 +45,7 @@ export class VacasService {
     // Validate required fields
     if (!tagId) throw new ConflictException('tag_id is required');
     if (!payload.name) throw new ConflictException('name is required');
+    if (!payload.ear_tag) throw new ConflictException('ear_tag is required');
 
     // Ensure the Tag exists (try PK first, then id_tag)
     const tagRepo = this.vacasRepo.manager.getRepository('Tag');
@@ -53,10 +56,8 @@ export class VacasService {
     }
     if (!tag) throw new NotFoundException('Tag no encontrado');
 
-  // attach relation - use full Tag entity so GraphQL fields like id_tag are available
-  payload.tag = tag;
-  // set ear_tag on the cow from the tag's id_tag if available
-  if (tag && tag.id_tag) payload.ear_tag = tag.id_tag;
+    // attach relation - use full Tag entity so GraphQL fields like id_tag are available
+    payload.tag = tag;
 
     const v = this.vacasRepo.create(payload as Partial<Vaca>);
     const saved = await this.vacasRepo.save(v);
@@ -111,6 +112,10 @@ export class VacasService {
     if (raw.nombre !== undefined) v.name = raw.nombre;
     if (raw.name !== undefined) v.name = raw.name;
 
+    if (raw.ear_tag !== undefined) v.ear_tag = raw.ear_tag;
+    if (raw.earTag !== undefined) v.ear_tag = raw.earTag;
+    if (raw.numero_arete !== undefined) v.ear_tag = raw.numero_arete;
+
     if (raw.comida_preferida !== undefined) v.favorite_food = raw.comida_preferida;
     if (raw.favorite_food !== undefined) v.favorite_food = raw.favorite_food;
 
@@ -140,9 +145,6 @@ export class VacasService {
       if (!tag) tag = await tagRepo.findOne({ where: { id_tag: String(raw.tag_id) } });
       if (!tag) throw new NotFoundException('Tag no encontrado');
       v.tag = tag as any;
-      if (tag.id_tag) {
-        v.ear_tag = tag.id_tag;
-      }
     }
 
     if (raw.imagen !== undefined) v.image = raw.imagen ? encryptText(raw.imagen) : undefined;

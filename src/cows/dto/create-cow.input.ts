@@ -12,6 +12,11 @@ export class CreateVacaInput {
   @Length(1, 100)
   nombre: string;
 
+  @Field()
+  @IsString()
+  @Length(1, 100)
+  ear_tag: string;
+
   @Field(() => Int, { nullable: true })
   @IsOptional()
   id_usuario?: number;
