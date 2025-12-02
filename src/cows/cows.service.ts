@@ -15,20 +15,9 @@ export class VacasService {
     // Normalize input fields (accept both GraphQL spanish fields and REST english fields)
     const raw: any = input as any;
     const payload: any = {};
-
-    const rawId = raw.id ?? raw.id_vaca ?? raw.id_cow;
-    if (rawId === undefined || rawId === null) {
-      throw new ConflictException('id is required');
+    if (raw.id !== undefined || raw.id_vaca !== undefined || raw.id_cow !== undefined) {
+      throw new ConflictException('El id ya no es editable; se genera automáticamente.');
     }
-    const idValue = Number(rawId);
-    if (!Number.isInteger(idValue)) {
-      throw new ConflictException('id must be an integer');
-    }
-    const existing = await this.vacasRepo.findOne({ where: { id: idValue } });
-    if (existing) {
-      throw new ConflictException('Ya existe una vaca con ese id');
-    }
-    payload.id = idValue;
 
     // tag id: accept tag_id (PK) or tag object
     const tagId = raw.tag_id ?? raw.tag ?? (raw.tag && raw.tag.id);
@@ -114,24 +103,8 @@ export class VacasService {
   async update(id: number, input: Partial<Vaca> & any): Promise<Vaca> {
     const v = await this.findOneById(id);
     const raw: any = input as any;
-    let targetId: number = v.id;
-
     if (raw.id !== undefined || raw.id_vaca !== undefined || raw.nuevo_id !== undefined) {
-      const requested = raw.id ?? raw.id_vaca ?? raw.nuevo_id;
-      if (requested === null) {
-        throw new ConflictException('id no puede ser null');
-      }
-      const numericId = Number(requested);
-      if (!Number.isInteger(numericId)) {
-        throw new ConflictException('id debe ser un entero');
-      }
-      if (numericId !== v.id) {
-        const duplicate = await this.vacasRepo.findOne({ where: { id: numericId } });
-        if (duplicate) {
-          throw new ConflictException('Ya existe una vaca con ese id');
-        }
-        targetId = numericId;
-      }
+      throw new ConflictException('El id de la vaca no es editable.');
     }
 
     // map possible input fields (accept spanish/english)
@@ -176,19 +149,7 @@ export class VacasService {
     if (raw.image !== undefined) v.image = raw.image ? encryptText(raw.image) : undefined;
 
     const saved = await this.vacasRepo.save(v);
-    let finalId = saved.id;
-
-    if (targetId !== v.id) {
-      await this.vacasRepo
-        .createQueryBuilder()
-        .update(Vaca)
-        .set({ id: targetId })
-        .where('id = :currentId', { currentId: saved.id })
-        .execute();
-      finalId = targetId;
-    }
-
-    return this.findOneById(finalId);
+    return this.findOneById(saved.id);
   }
 
   async remove(id: number): Promise<boolean> {

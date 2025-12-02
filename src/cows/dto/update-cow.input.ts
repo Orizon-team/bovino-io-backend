@@ -6,11 +6,6 @@ export class UpdateVacaInput {
   @Field(() => Int, { nullable: true })
   @IsOptional()
   @IsInt()
-  id?: number;
-
-  @Field(() => Int, { nullable: true })
-  @IsOptional()
-  @IsInt()
   tag_id?: number;
 
   @Field({ nullable: true })

@@ -61,7 +61,6 @@ input CreateUserInput {
 
 input CreateVacaInput {
   comida_preferida: String
-  id: Int!
   id_usuario: Int
   imagen: String
   nombre: String!
@@ -256,7 +255,6 @@ input UpdateUserInput {
 
 input UpdateVacaInput {
   comida_preferida: String
-  id: Int
   id_usuario: Int
   imagen: String
   nombre: String

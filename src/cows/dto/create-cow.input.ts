@@ -5,10 +5,6 @@ import { IsInt, IsOptional, IsString, Length } from 'class-validator';
 export class CreateVacaInput {
   @Field(() => Int)
   @IsInt()
-  id: number;
-
-  @Field(() => Int)
-  @IsInt()
   tag_id: number;
 
   @Field()

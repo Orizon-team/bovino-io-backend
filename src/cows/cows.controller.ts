@@ -24,8 +24,6 @@ export class VacasController {
 
       // Normalize incoming form-data keys to the service DTO/entity shape.
       const payload: any = {};
-      const rawId = (body as any).id ?? (body as any).id_vaca ?? (body as any).id_cow;
-      payload.id = rawId !== undefined && rawId !== null && rawId !== '' ? Number(rawId) : undefined;
       // tag_id: accept tag_id (PK) or tag (alias)
       const rawTag = (body as any).tag_id ?? (body as any).tag;
       payload.tag_id = rawTag ? Number(rawTag) : undefined;
@@ -40,7 +38,6 @@ export class VacasController {
       payload.imagen = url ?? (body as any).image ?? (body as any).imagen;
 
       // Validate required fields before calling service
-      if (payload.id === undefined || Number.isNaN(payload.id)) throw new BadRequestException('id is required');
       if (!payload.tag_id) throw new BadRequestException('tag_id is required');
       if (!payload.name) throw new BadRequestException('name is required');
 
