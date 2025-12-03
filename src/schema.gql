@@ -61,10 +61,10 @@ input CreateUserInput {
 
 input CreateVacaInput {
   comida_preferida: String
+  ear_tag: String!
   id_usuario: Int
   imagen: String
   nombre: String!
-  ear_tag: String!
   tag_id: Int!
 }
 
@@ -137,13 +137,16 @@ type Mutation {
   createVaca(input: CreateVacaInput!): Vaca!
   createZone(input: CreateZoneInput!): Zone!
   deleteDispositivo(id: Int!): Boolean!
+  deleteEvento(id: Int!): Boolean!
+  deleteEventosByUserAndType(event_type: String!, id_user: Int!): Int!
   deleteTag(id: Int!): Boolean!
   deleteUser(id: Int!): Boolean!
   deleteVaca(id: Int!): Boolean!
   deleteZone(id: Int!): Boolean!
-  deleteEventosByUserAndType(id_user: Int!, event_type: String!): Int!
-  testCowRegistration(id_user: Int!, tag_id: Int!, zone_id: Int!, zone_name: String!, user_name: String, user_email: String, id_tag: String, mac_address: String, redirect_url: String): Boolean!
   login(input: LoginUserInput!): User
+
+  """Temporal: dispara manualmente cow.registration.request"""
+  testCowRegistration(id_tag: String, id_user: Int!, mac_address: String, redirect_url: String, tag_id: Int!, user_email: String, user_name: String, zone_id: Int!, zone_name: String!): Boolean!
   updateDeteccion(id: Int!, input: UpdateDeteccionInput!): Deteccion!
   updateDispositivo(id: Int!, input: UpdateDispositivoInput!): DispositivoESP32!
   updateEvento(id: Int!, input: UpdateEventoInput!): Evento!
@@ -258,10 +261,10 @@ input UpdateUserInput {
 
 input UpdateVacaInput {
   comida_preferida: String
+  ear_tag: String
   id_usuario: Int
   imagen: String
   nombre: String
-  ear_tag: String
   tag_id: Int
 }
 
