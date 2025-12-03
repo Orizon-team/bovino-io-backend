@@ -141,6 +141,7 @@ type Mutation {
   deleteUser(id: Int!): Boolean!
   deleteVaca(id: Int!): Boolean!
   deleteZone(id: Int!): Boolean!
+  deleteEventosByUserAndType(id_user: Int!, event_type: String!): Int!
   login(input: LoginUserInput!): User
   updateDeteccion(id: Int!, input: UpdateDeteccionInput!): Deteccion!
   updateDispositivo(id: Int!, input: UpdateDispositivoInput!): DispositivoESP32!
