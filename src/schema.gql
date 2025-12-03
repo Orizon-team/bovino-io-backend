@@ -142,6 +142,7 @@ type Mutation {
   deleteVaca(id: Int!): Boolean!
   deleteZone(id: Int!): Boolean!
   deleteEventosByUserAndType(id_user: Int!, event_type: String!): Int!
+  testCowRegistration(id_user: Int!, tag_id: Int!, zone_id: Int!, zone_name: String!, user_name: String, user_email: String, id_tag: String, mac_address: String, redirect_url: String): Boolean!
   login(input: LoginUserInput!): User
   updateDeteccion(id: Int!, input: UpdateDeteccionInput!): Deteccion!
   updateDispositivo(id: Int!, input: UpdateDispositivoInput!): DispositivoESP32!
