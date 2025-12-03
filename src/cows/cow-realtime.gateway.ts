@@ -29,7 +29,7 @@ export interface CowRegistrationTimeoutPayload {
 @WebSocketGateway({ cors: { origin: '*', credentials: false } })
 export class CowRealtimeGateway {
   private readonly logger = new Logger(CowRealtimeGateway.name);
-  private readonly registrationUrl = process.env.FRONTEND_CATTLE_URL ?? 'http://localhost:5173/dashboard/cattle';
+  private readonly registrationUrl = process.env.FRONTEND_CATTLE_URL?.trim() || null;
 
   constructor(private readonly realtimeService: CowRealtimeService) {}
 
@@ -104,10 +104,10 @@ export class CowRealtimeGateway {
       this.logger.warn(`emitRegistrationRequest ignorado: id_user inválido (${userId})`);
       return;
     }
-    const enrichedPayload: CowRegistrationRequestPayload = {
-      ...payload,
-      redirect_url: payload.redirect_url ?? this.registrationUrl,
-    };
+    const enrichedPayload: CowRegistrationRequestPayload = { ...payload };
+    if (!enrichedPayload.redirect_url && this.registrationUrl) {
+      enrichedPayload.redirect_url = this.registrationUrl;
+    }
     this.server.to(this.userRoom(normalizedUserId)).emit('cow.registration.request', enrichedPayload);
   }
 
