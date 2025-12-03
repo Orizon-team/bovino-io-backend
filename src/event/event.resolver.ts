@@ -37,4 +37,12 @@ export class EventosResolver {
   deleteEvento(@Args('id', { type: () => Int }) id: number) {
     return this.eventosService.remove(id);
   }
+
+  @Mutation(() => Int)
+  deleteEventosByUserAndType(
+    @Args('id_user', { type: () => Int }) id_user: number,
+    @Args('event_type', { type: () => String }) event_type: string,
+  ) {
+    return this.eventosService.removeByUserAndType(id_user, event_type);
+  }
 }

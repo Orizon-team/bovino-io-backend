@@ -110,4 +110,16 @@ export class EventosService {
     if (res.affected && res.affected > 0) return true;
     throw new Error('Evento no encontrado');
   }
+
+  async removeByUserAndType(id_user: number, eventType: string): Promise<number> {
+    const result = await this.repo
+      .createQueryBuilder()
+      .delete()
+      .from(Evento)
+      .where('Event_Type = :eventType', { eventType })
+      .andWhere('id_user = :id_user', { id_user })
+      .execute();
+
+    return result.affected ?? 0;
+  }
 }
