@@ -12,6 +12,7 @@ async function bootstrap() {
     process.env.FRONTEND_ORIGIN,
     process.env.BACKEND_URL,
     'http://localhost:5173',
+    'http://192.168.55.2:5173',
     'https://nqhmac-ip-201-162-245-171.tunnelmole.net',
     'http://nqhmac-ip-201-162-245-171.tunnelmole.net',
   ].filter(isNonEmptyString);
