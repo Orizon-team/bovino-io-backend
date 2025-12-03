@@ -29,7 +29,7 @@ export interface CowRegistrationTimeoutPayload {
 @WebSocketGateway({ cors: { origin: '*', credentials: false } })
 export class CowRealtimeGateway {
   private readonly logger = new Logger(CowRealtimeGateway.name);
-  private readonly registrationUrl = process.env.FRONTEND_CATTLE_URL ?? 'https://wezflb-ip-209-178-128-69.tunnelmole.net/dashboard/cattle';
+  private readonly registrationUrl = process.env.FRONTEND_CATTLE_URL ?? 'http://localhost:5173/dashboard/cattle';
 
   constructor(private readonly realtimeService: CowRealtimeService) {}
 
