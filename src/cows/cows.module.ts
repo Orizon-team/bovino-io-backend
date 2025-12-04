@@ -8,9 +8,10 @@ import { Deteccion } from '../detection/detection.entity';
 import { Tag } from '../tags/tag.entity';
 import { CowRealtimeService } from './cow-realtime.service';
 import { CowRealtimeGateway } from './cow-realtime.gateway';
+import { TagsModule } from '../tags/tags.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Vaca, Deteccion, Tag])],
+  imports: [TypeOrmModule.forFeature([Vaca, Deteccion, Tag]), TagsModule],
   controllers: [VacasController],
   providers: [VacasService, VacasResolver, CowRealtimeService, CowRealtimeGateway],
   exports: [VacasService, CowRealtimeService, CowRealtimeGateway],

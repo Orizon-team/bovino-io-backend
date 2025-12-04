@@ -4,10 +4,11 @@ import { Vaca } from './cow.entity';
 import { CreateVacaInput } from './dto/create-cow.input';
 import { UpdateVacaInput } from './dto/update-cow.input';
 import { CowRealtimeGateway, CowRegistrationRequestPayload } from './cow-realtime.gateway';
+import { TagsService } from '../tags/tags.service';
 
 @Resolver(() => Vaca)
 export class VacasResolver {
-  constructor(private vacasService: VacasService, private cowGateway: CowRealtimeGateway) {}
+  constructor(private vacasService: VacasService, private cowGateway: CowRealtimeGateway, private tagsService: TagsService) {}
 
   @Query(() => [Vaca])
   vacas() {
@@ -40,7 +41,7 @@ export class VacasResolver {
   }
 
   @Mutation(() => Boolean, { description: 'Temporal: dispara manualmente cow.registration.request' })
-  testCowRegistration(
+  async testCowRegistration(
     @Args('id_user', { type: () => Int }) id_user: number,
     @Args('tag_id', { type: () => Int }) tag_id: number,
     @Args('zone_id', { type: () => Int }) zone_id: number,
@@ -51,10 +52,15 @@ export class VacasResolver {
     @Args('mac_address', { type: () => String, nullable: true }) mac_address?: string,
     @Args('redirect_url', { type: () => String, nullable: true }) redirect_url?: string,
   ) {
+    const tag = await this.tagsService.findOneById(tag_id);
+    if (tag.status === 'unregistered') {
+      await this.tagsService.update(tag.id, { status: 'processing' } as any);
+    }
+
     const payload: CowRegistrationRequestPayload = {
-      tag_id,
-      id_tag,
-      mac_address,
+      tag_id: tag.id,
+      id_tag: tag.id_tag ?? id_tag ?? null,
+      mac_address: tag.mac_address ?? mac_address ?? null,
       zone: { id: zone_id, name: zone_name },
       user: { id_user, name: user_name ?? null, email: user_email ?? null },
       redirect_url,
