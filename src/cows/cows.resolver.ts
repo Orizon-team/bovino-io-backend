@@ -5,10 +5,16 @@ import { CreateVacaInput } from './dto/create-cow.input';
 import { UpdateVacaInput } from './dto/update-cow.input';
 import { CowRealtimeGateway, CowRegistrationRequestPayload } from './cow-realtime.gateway';
 import { TagsService } from '../tags/tags.service';
+import { ZoneService } from '../zone/zone.service';
 
 @Resolver(() => Vaca)
 export class VacasResolver {
-  constructor(private vacasService: VacasService, private cowGateway: CowRealtimeGateway, private tagsService: TagsService) {}
+  constructor(
+    private vacasService: VacasService,
+    private cowGateway: CowRealtimeGateway,
+    private tagsService: TagsService,
+    private zoneService: ZoneService,
+  ) {}
 
   @Query(() => [Vaca])
   vacas() {
@@ -45,7 +51,7 @@ export class VacasResolver {
     @Args('id_user', { type: () => Int }) id_user: number,
     @Args('tag_id', { type: () => Int }) tag_id: number,
     @Args('zone_id', { type: () => Int }) zone_id: number,
-    @Args('zone_name', { type: () => String }) zone_name: string,
+    @Args('zone_name', { type: () => String, nullable: true }) zone_name?: string,
     @Args('user_name', { type: () => String, nullable: true }) user_name?: string,
     @Args('user_email', { type: () => String, nullable: true }) user_email?: string,
     @Args('id_tag', { type: () => String, nullable: true }) id_tag?: string,
@@ -57,12 +63,17 @@ export class VacasResolver {
       await this.tagsService.update(tag.id, { status: 'processing' } as any);
     }
 
+    const zone = await this.zoneService.findOneById(zone_id);
+    const finalZoneName = zone?.name ?? zone_name ?? `Zona ${zone_id}`;
+    const finalUserName = user_name ?? zone.user?.name ?? null;
+    const finalUserEmail = user_email ?? zone.user?.email ?? null;
+
     const payload: CowRegistrationRequestPayload = {
       tag_id: tag.id,
       id_tag: tag.id_tag ?? id_tag ?? null,
       mac_address: tag.mac_address ?? mac_address ?? null,
-      zone: { id: zone_id, name: zone_name },
-      user: { id_user, name: user_name ?? null, email: user_email ?? null },
+      zone: { id: zone_id, name: finalZoneName },
+      user: { id_user, name: finalUserName, email: finalUserEmail },
       redirect_url,
     };
     this.cowGateway.emitRegistrationRequest(id_user, payload);
