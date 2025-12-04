@@ -13,7 +13,7 @@ export class Vaca {
 
   @Field(() => Tag, { nullable: true })
   @ManyToOne(() => Tag, { nullable: false, onUpdate: 'CASCADE', onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'tag_id', referencedColumnName: 'id_tag' })
+  @JoinColumn({ name: 'tag_id' })
   tag: Tag;
 
   @Field()
