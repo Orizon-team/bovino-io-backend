@@ -1,5 +1,7 @@
 import { InputType, Field, Int, Float } from '@nestjs/graphql';
-import { IsOptional, IsString, IsNumber } from 'class-validator';
+import { Type } from 'class-transformer';
+import { IsOptional, IsString, IsNumber, ValidateNested } from 'class-validator';
+import { TagLocationInput } from './tag-location.input';
 
 @InputType()
 export class CreateTagInput {
@@ -29,8 +31,9 @@ export class CreateTagInput {
   @IsString()
   status?: string;
 
-  @Field({ nullable: true })
+  @Field(() => TagLocationInput, { nullable: true })
   @IsOptional()
-  @IsString()
-  current_location?: string;
+  @ValidateNested()
+  @Type(() => TagLocationInput)
+  current_location?: TagLocationInput;
 }

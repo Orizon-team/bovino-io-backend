@@ -3,6 +3,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Tag } from './tag.entity';
 import { CreateTagInput } from './dto/create-tag.input';
+import { UpdateTagInput } from './dto/update-tag.input';
+import { TagLocationInput } from './dto/tag-location.input';
 
 @Injectable()
 export class TagsService {
@@ -18,6 +20,7 @@ export class TagsService {
       payload.last_transmission = isNaN(d.getTime()) ? undefined : d;
     }
     if (payload.mac_address) payload.mac_address = this.normalizeMac(payload.mac_address);
+    payload.current_location = this.normalizeLocation(payload.current_location);
     const t = this.tagsRepo.create(payload as Partial<Tag>);
     return this.tagsRepo.save(t);
   }
@@ -62,7 +65,7 @@ export class TagsService {
     return this.tagsRepo.save(tag);
   }
 
-  async update(id: number, input: Partial<Tag>): Promise<Tag> {
+  async update(id: number, input: UpdateTagInput | Partial<Tag>): Promise<Tag> {
     const tag = await this.findOneById(id);
     const payload: any = { ...input } as any;
     if (payload.last_transmission) {
@@ -70,6 +73,7 @@ export class TagsService {
       payload.last_transmission = isNaN(d.getTime()) ? undefined : d;
     }
     if (payload.mac_address) payload.mac_address = this.normalizeMac(payload.mac_address);
+    payload.current_location = this.normalizeLocation(payload.current_location);
     const merged = this.tagsRepo.merge(tag, payload as Partial<Tag>);
     return this.tagsRepo.save(merged);
   }
@@ -90,5 +94,23 @@ export class TagsService {
       }
     }
     return trimmed;
+  }
+
+  private normalizeLocation(location?: TagLocationInput | string): string | undefined {
+    if (!location) {
+      return undefined;
+    }
+    if (typeof location === 'string') {
+      const trimmed = location.trim();
+      return trimmed.length > 0 ? trimmed : undefined;
+    }
+    const name = location.name?.trim();
+    if (name) {
+      return name;
+    }
+    if (typeof location.id === 'number') {
+      return `Zona ${location.id}`;
+    }
+    return undefined;
   }
 }
