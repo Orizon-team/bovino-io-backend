@@ -20,7 +20,7 @@ export class VacasService {
     }
 
     // tag id: accept tag_id (PK) or tag object
-    const tagId = raw.tag_id ?? raw.tag ?? (raw.tag && raw.tag.id);
+    const tagId = raw.tag_id ?? (raw.tag && (raw.tag.id ?? raw.tag.id_tag ?? raw.tag.idTag));
     // name: accept name or nombre
     payload.name = raw.name ?? raw.nombre;
     // ear_tag: explicit identifier for the cow
@@ -49,10 +49,15 @@ export class VacasService {
 
     // Ensure the Tag exists (try PK first, then id_tag)
     const tagRepo = this.vacasRepo.manager.getRepository('Tag');
-    let tag = await tagRepo.findOne({ where: { id: Number(tagId) } });
-    if (!tag) {
-      // try matching id_tag (string)
+    let tag: any = null;
+    if (tagId !== undefined && tagId !== null) {
       tag = await tagRepo.findOne({ where: { id_tag: String(tagId) } });
+      if (!tag) {
+        const numericTagId = Number(tagId);
+        if (!Number.isNaN(numericTagId)) {
+          tag = await tagRepo.findOne({ where: { id: numericTagId } });
+        }
+      }
     }
     if (!tag) throw new NotFoundException('Tag no encontrado');
 
@@ -141,8 +146,13 @@ export class VacasService {
     if (raw.tag_id !== undefined) {
       // find tag by PK or id_tag
       const tagRepo = this.vacasRepo.manager.getRepository('Tag');
-      let tag = await tagRepo.findOne({ where: { id: Number(raw.tag_id) } });
-      if (!tag) tag = await tagRepo.findOne({ where: { id_tag: String(raw.tag_id) } });
+      let tag: any = await tagRepo.findOne({ where: { id_tag: String(raw.tag_id) } });
+      if (!tag) {
+        const numericTagId = Number(raw.tag_id);
+        if (!Number.isNaN(numericTagId)) {
+          tag = await tagRepo.findOne({ where: { id: numericTagId } });
+        }
+      }
       if (!tag) throw new NotFoundException('Tag no encontrado');
       v.tag = tag as any;
     }
