@@ -10,7 +10,7 @@ export class Tag {
   id: number;
 
   @Field(() => String)
-  @Column({ type: 'bigint', name: 'id_tag' })
+  @Column({ type: 'bigint', name: 'id_tag', unique: true })
   id_tag: string;
 
   @Field({ nullable: true })
