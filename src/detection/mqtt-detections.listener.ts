@@ -218,7 +218,11 @@ export class MqttDetectionsListener implements OnModuleInit, OnModuleDestroy {
     }
 
     const targetTag = unregisteredTags[0];
-    const updatedTag = await this.tagsService.update(targetTag.id, { status: 'processing' });
+    const locationName = zone.name?.trim() || `Zona ${zone.id}`;
+    const updatedTag = await this.tagsService.update(targetTag.id, {
+      status: 'processing',
+      current_location: locationName,
+    });
     this.logger.log(`Tag ${updatedTag.id} (${updatedTag.mac_address ?? 'sin MAC'}) marcado como processing para zone_id=${zoneId}.`);
     this.scheduleProcessingTimeout(updatedTag, zone, userId);
 
