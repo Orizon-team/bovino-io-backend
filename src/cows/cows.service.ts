@@ -38,6 +38,7 @@ export class VacasService {
     }
     // favorite_food
     payload.favorite_food = raw.favorite_food ?? raw.comida_preferida;
+    payload.description = raw.description ?? raw.descripcion;
     // image: accept uploaded 'imagen' or 'image'
     if (raw.imagen) payload.image = encryptText(raw.imagen);
     else if (raw.image) payload.image = encryptText(raw.image);
@@ -118,6 +119,9 @@ export class VacasService {
 
     if (raw.comida_preferida !== undefined) v.favorite_food = raw.comida_preferida;
     if (raw.favorite_food !== undefined) v.favorite_food = raw.favorite_food;
+
+    if (raw.descripcion !== undefined) v.description = raw.descripcion;
+    if (raw.description !== undefined) v.description = raw.description;
 
     if (raw.id_usuario !== undefined) {
       if (raw.id_usuario === null) v.user = undefined as any;

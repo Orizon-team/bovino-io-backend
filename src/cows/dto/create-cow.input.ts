@@ -30,4 +30,9 @@ export class CreateVacaInput {
   @IsOptional()
   @IsString()
   imagen?: string;
+
+  @Field({ nullable: true })
+  @IsOptional()
+  @IsString()
+  descripcion?: string;
 }

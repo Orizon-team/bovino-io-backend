@@ -41,4 +41,8 @@ export class Vaca {
   @Field({ nullable: true })
   @Column({ type: 'varchar', length: 100, nullable: true, name: 'ear_tag' })
   ear_tag?: string;
+
+  @Field({ nullable: true })
+  @Column({ type: 'text', nullable: true, name: 'description' })
+  description?: string;
 }
