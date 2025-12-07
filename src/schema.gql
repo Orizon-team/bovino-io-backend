@@ -145,7 +145,7 @@ type Mutation {
   login(input: LoginUserInput!): User
 
   """Temporal: dispara manualmente cow.registration.request"""
-  testCowRegistration(id_user: Int!, mac_address: String, redirect_url: String, tag_id: Int!, user_email: String, user_name: String, zone_id: Int!, zone_name: String!): Boolean!
+  testCowRegistration(id_user: Int!, redirect_url: String, tag_id: Int!): Boolean!
   updateDeteccion(id: Int!, input: UpdateDeteccionInput!): Deteccion!
   updateDispositivo(id: Int!, input: UpdateDispositivoInput!): DispositivoESP32!
   updateEvento(id: Int!, input: UpdateEventoInput!): Evento!

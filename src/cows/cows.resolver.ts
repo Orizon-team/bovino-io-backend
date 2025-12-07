@@ -5,7 +5,6 @@ import { CreateVacaInput } from './dto/create-cow.input';
 import { UpdateVacaInput } from './dto/update-cow.input';
 import { CowRealtimeGateway, CowRegistrationRequestPayload } from './cow-realtime.gateway';
 import { TagsService } from '../tags/tags.service';
-import { ZoneService } from '../zone/zone.service';
 
 @Resolver(() => Vaca)
 export class VacasResolver {
@@ -13,7 +12,6 @@ export class VacasResolver {
     private vacasService: VacasService,
     private cowGateway: CowRealtimeGateway,
     private tagsService: TagsService,
-    private zoneService: ZoneService,
   ) {}
 
   @Query(() => [Vaca])
@@ -50,11 +48,6 @@ export class VacasResolver {
   async testCowRegistration(
     @Args('id_user', { type: () => Int }) id_user: number,
     @Args('tag_id', { type: () => Int }) tag_id: number,
-    @Args('zone_id', { type: () => Int }) zone_id: number,
-    @Args('zone_name', { type: () => String, nullable: true }) zone_name?: string,
-    @Args('user_name', { type: () => String, nullable: true }) user_name?: string,
-    @Args('user_email', { type: () => String, nullable: true }) user_email?: string,
-    @Args('mac_address', { type: () => String, nullable: true }) mac_address?: string,
     @Args('redirect_url', { type: () => String, nullable: true }) redirect_url?: string,
   ) {
     const tag = await this.tagsService.findOneById(tag_id);
@@ -62,17 +55,10 @@ export class VacasResolver {
       await this.tagsService.update(tag.id, { status: 'processing' } as any);
     }
 
-    const zone = await this.zoneService.findOneById(zone_id);
-    const finalZoneName = zone?.name ?? zone_name ?? `Zona ${zone_id}`;
-    const finalUserName = user_name ?? zone.user?.name ?? null;
-    const finalUserEmail = user_email ?? zone.user?.email ?? null;
-
     const payload: CowRegistrationRequestPayload = {
       tag_id: tag.id,
-      mac_address: tag.mac_address ?? mac_address ?? null,
-      zone: { id: zone_id, name: finalZoneName },
-      user: { id_user, name: finalUserName, email: finalUserEmail },
-      redirect_url,
+      user: { id_user },
+      redirect_url: redirect_url ?? null,
     };
     this.cowGateway.emitRegistrationRequest(id_user, payload);
     return true;
