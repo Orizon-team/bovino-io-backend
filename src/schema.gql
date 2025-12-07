@@ -7,11 +7,11 @@ input CreateDeteccionInput {
   fecha: DateTime
   first_seen: DateTime
   id_device: Int!
-  tag_id: Int!
   intensidad_senal: Float
   is_present: Boolean
   last_seen: DateTime
   rssi: Int
+  tag_id: Int!
 }
 
 input CreateDispositivoInput {
@@ -32,8 +32,8 @@ input CreateEventoInput {
   date: String
   id_cow: Int
   id_device: Int
-  tag_id: Int
   id_user: Int
+  tag_id: Int
   time: String
 }
 
@@ -46,7 +46,7 @@ input CreatePreferenciaInput {
 
 input CreateTagInput {
   battery_level: Float
-  current_location: String
+  current_location: TagLocationInput
   last_transmission: String
   mac_address: String
   status: String
@@ -60,6 +60,7 @@ input CreateUserInput {
 
 input CreateVacaInput {
   comida_preferida: String
+  descripcion: String
   ear_tag: String!
   id_usuario: Int
   imagen: String
@@ -142,8 +143,10 @@ type Mutation {
   deleteUser(id: Int!): Boolean!
   deleteVaca(id: Int!): Boolean!
   deleteZone(id: Int!): Boolean!
-  resetAllTagsStatus: Int!
   login(input: LoginUserInput!): User
+
+  """Establece todos los Tags con status unregistered."""
+  resetAllTagsStatus: Int!
 
   """Temporal: dispara manualmente cow.registration.request"""
   testCowRegistration(id_user: Int!, redirect_url: String, tag_id: Int!): Boolean!
@@ -201,16 +204,21 @@ type Tag {
   status: String
 }
 
+input TagLocationInput {
+  id: Int
+  name: String
+}
+
 input UpdateDeteccionInput {
   distance: Float
   fecha: DateTime
   first_seen: DateTime
   id_device: Int
-  tag_id: Int
   intensidad_senal: Float
   is_present: Boolean
   last_seen: DateTime
   rssi: Int
+  tag_id: Int
 }
 
 input UpdateDispositivoInput {
@@ -231,8 +239,8 @@ input UpdateEventoInput {
   date: String
   id_cow: Int
   id_device: Int
-  tag_id: Int
   id_user: Int
+  tag_id: Int
   time: String
 }
 
@@ -245,7 +253,7 @@ input UpdatePreferenciaInput {
 
 input UpdateTagInput {
   battery_level: Float
-  current_location: String
+  current_location: TagLocationInput
   last_transmission: String
   mac_address: String
   status: String
@@ -259,6 +267,7 @@ input UpdateUserInput {
 
 input UpdateVacaInput {
   comida_preferida: String
+  descripcion: String
   ear_tag: String
   id_usuario: Int
   imagen: String
@@ -279,6 +288,7 @@ type User {
 }
 
 type Vaca {
+  description: String
   ear_tag: String
   favorite_food: String
   id: Int!

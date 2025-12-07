@@ -13,6 +13,7 @@ import { DispositivosModule } from './device_esp32/device_esp32.module';
 import { DeteccionesModule } from './detection/detection.module';
 import { PreferenciasModule } from './preference/preference.module';
 import { EventosModule } from './event/event.module';
+import { NotificationsModule } from './notifications/notifications.module';
 
 @Module({
   imports: [
@@ -41,6 +42,7 @@ import { EventosModule } from './event/event.module';
     DeteccionesModule,
   PreferenciasModule,
   EventosModule,
+  NotificationsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
