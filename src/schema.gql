@@ -7,7 +7,7 @@ input CreateDeteccionInput {
   fecha: DateTime
   first_seen: DateTime
   id_device: Int!
-  id_tag: Int!
+  tag_id: Int!
   intensidad_senal: Float
   is_present: Boolean
   last_seen: DateTime
@@ -32,7 +32,7 @@ input CreateEventoInput {
   date: String
   id_cow: Int
   id_device: Int
-  id_tag: Int
+  tag_id: Int
   id_user: Int
   time: String
 }
@@ -47,7 +47,6 @@ input CreatePreferenciaInput {
 input CreateTagInput {
   battery_level: Float
   current_location: String
-  id_tag: String
   last_transmission: String
   mac_address: String
   status: String
@@ -146,7 +145,7 @@ type Mutation {
   login(input: LoginUserInput!): User
 
   """Temporal: dispara manualmente cow.registration.request"""
-  testCowRegistration(id_tag: String, id_user: Int!, mac_address: String, redirect_url: String, tag_id: Int!, user_email: String, user_name: String, zone_id: Int!, zone_name: String!): Boolean!
+  testCowRegistration(id_user: Int!, mac_address: String, redirect_url: String, tag_id: Int!, user_email: String, user_name: String, zone_id: Int!, zone_name: String!): Boolean!
   updateDeteccion(id: Int!, input: UpdateDeteccionInput!): Deteccion!
   updateDispositivo(id: Int!, input: UpdateDispositivoInput!): DispositivoESP32!
   updateEvento(id: Int!, input: UpdateEventoInput!): Evento!
@@ -196,7 +195,6 @@ type Tag {
   battery_level: Float
   current_location: String
   id: Int!
-  id_tag: String!
   last_transmission: DateTime
   mac_address: String
   status: String
@@ -207,7 +205,7 @@ input UpdateDeteccionInput {
   fecha: DateTime
   first_seen: DateTime
   id_device: Int
-  id_tag: Int
+  tag_id: Int
   intensidad_senal: Float
   is_present: Boolean
   last_seen: DateTime
@@ -232,7 +230,7 @@ input UpdateEventoInput {
   date: String
   id_cow: Int
   id_device: Int
-  id_tag: Int
+  tag_id: Int
   id_user: Int
   time: String
 }
@@ -247,7 +245,6 @@ input UpdatePreferenciaInput {
 input UpdateTagInput {
   battery_level: Float
   current_location: String
-  id_tag: String
   last_transmission: String
   mac_address: String
   status: String

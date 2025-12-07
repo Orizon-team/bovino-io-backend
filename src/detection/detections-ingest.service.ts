@@ -90,13 +90,26 @@ export class DetectionsIngestService {
         continue;
       }
 
-      let tag = await this.tagsService.findByIdTag(tagIdStr);
-      if (!tag) {
-        tag = await this.tagsService.create({ id_tag: tagIdStr, current_location: item.device_location ?? item.deviceLocation } as any);
-        this.logger.log(`Created tag ${tagIdStr} from ingest payload.`);
-      } else if (item.device_location ?? item.deviceLocation) {
-        tag.current_location = item.device_location ?? item.deviceLocation;
-        await this.tagsService.saveTag(tag);
+      const tagIdValue = Number(tagIdStr);
+      if (!Number.isFinite(tagIdValue)) {
+        this.logger.warn(`Skipping detection with non-numeric tag_id ${tagIdStr}`);
+        continue;
+      }
+
+      let tag;
+      try {
+        tag = await this.tagsService.findOneById(tagIdValue);
+      } catch (err) {
+        if (err instanceof NotFoundException) {
+          this.logger.warn(`Tag ${tagIdValue} not found while processing detection; skipping entry.`);
+          continue;
+        }
+        throw err;
+      }
+
+      const deviceLocation = item.device_location ?? item.deviceLocation;
+      if (deviceLocation) {
+        tag = await this.tagsService.update(tag.id, { current_location: deviceLocation } as any);
       }
 
       const firstSeenValue = item.first_seen ?? item.firstSeen;

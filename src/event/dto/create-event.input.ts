@@ -23,7 +23,7 @@ export class CreateEventoInput {
 
   @Field(() => Int, { nullable: true })
   @IsOptional()
-  id_tag?: number;
+  tag_id?: number;
 
   @Field(() => Int, { nullable: true })
   @IsOptional()

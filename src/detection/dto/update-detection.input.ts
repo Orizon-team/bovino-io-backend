@@ -6,7 +6,7 @@ export class UpdateDeteccionInput {
   @Field(() => Int, { nullable: true })
   @IsOptional()
   @IsInt()
-  id_tag?: number;
+  tag_id?: number;
 
   @Field(() => Int, { nullable: true })
   @IsOptional()

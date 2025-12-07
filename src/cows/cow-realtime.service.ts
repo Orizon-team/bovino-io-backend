@@ -59,7 +59,7 @@ export class CowRealtimeService {
     }
 
     const image = cow.image ? decryptText(cow.image) : null;
-    const earTag = cow.ear_tag ?? cow.tag?.id_tag ?? null;
+    const earTag = cow.ear_tag ?? null;
 
     return {
       id: cow.id,

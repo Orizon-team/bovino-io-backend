@@ -8,11 +8,6 @@ export class UpdateTagInput {
   @Field({ nullable: true })
   @IsOptional()
   @IsString()
-  id_tag?: string;
-
-  @Field({ nullable: true })
-  @IsOptional()
-  @IsString()
   mac_address?: string;
 
   @Field(() => Float, { nullable: true })

@@ -31,9 +31,9 @@ export class EventosService {
       if (!cow) throw new NotFoundException('Vaca no encontrada');
       payload.cow = cow as any;
     }
-    if (raw.id_tag !== undefined && raw.id_tag !== null) {
+    if (raw.tag_id !== undefined && raw.tag_id !== null) {
       const tagRepo = this.repo.manager.getRepository('Tag');
-      const tag = await tagRepo.findOne({ where: { id: Number(raw.id_tag) } });
+      const tag = await tagRepo.findOne({ where: { id: Number(raw.tag_id) } });
       if (!tag) throw new NotFoundException('Tag no encontrado');
       payload.tag = tag as any;
     }
@@ -88,7 +88,7 @@ export class EventosService {
   if (input.fecha !== undefined) e.date = input.fecha as any;
   if (input.hora !== undefined) e.time = input.hora as any;
   if (input.id_cow !== undefined) e.cow = input.id_cow === null ? undefined as any : ({ id: input.id_cow } as any);
-  if (input.id_tag !== undefined) e.tag = input.id_tag === null ? undefined as any : ({ id: input.id_tag } as any);
+  if (input.tag_id !== undefined) e.tag = input.tag_id === null ? undefined as any : ({ id: input.tag_id } as any);
   if (input.id_device !== undefined) e.device = input.id_device === null ? undefined as any : ({ id: input.id_device } as any);
   if (input.id_user !== undefined) {
     if (input.id_user === null) {

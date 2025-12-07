@@ -233,7 +233,6 @@ export class MqttDetectionsListener implements OnModuleInit, OnModuleDestroy {
 
     const requestPayload: CowRegistrationRequestPayload = {
       tag_id: updatedTag.id,
-      id_tag: updatedTag.id_tag ?? null,
       mac_address: updatedTag.mac_address ?? null,
       zone: { id: zone.id, name: zone.name },
       user: {
@@ -261,12 +260,12 @@ export class MqttDetectionsListener implements OnModuleInit, OnModuleDestroy {
           return;
         }
         await this.tagsService.update(tag.id, { status: 'unregistered' });
-        const message = `Tiempo de registro agotado para el tag ${freshTag.id_tag ?? freshTag.mac_address ?? freshTag.id}. El estado se restableció a "unregistered".`;
+        const tagLabel = freshTag.mac_address ?? freshTag.id;
+        const message = `Tiempo de registro agotado para el tag ${tagLabel}. El estado se restableció a "unregistered".`;
         await this.createErrorEvent(userId, message, 'TAG_REG_TIMEOUT');
         if (userId) {
           this.cowGateway.emitRegistrationTimeout(userId, {
             tag_id: freshTag.id,
-            id_tag: freshTag.id_tag ?? null,
             message,
           });
         }

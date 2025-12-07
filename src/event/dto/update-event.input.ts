@@ -26,7 +26,7 @@ export class UpdateEventoInput {
   @Field(() => Int, { nullable: true })
   @IsOptional()
   @IsInt()
-  id_tag?: number | null;
+  tag_id?: number | null;
 
   @Field(() => Int, { nullable: true })
   @IsOptional()

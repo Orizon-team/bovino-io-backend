@@ -1,6 +1,5 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
 import { ObjectType, Field, Int, Float } from '@nestjs/graphql';
-import { Vaca } from '../cows/cow.entity';
 
 @ObjectType()
 @Entity({ name: 'Tag' })
@@ -8,10 +7,6 @@ export class Tag {
   @Field(() => Int)
   @PrimaryGeneratedColumn({ name: 'id' })
   id: number;
-
-  @Field(() => String)
-  @Column({ type: 'bigint', name: 'id_tag' })
-  id_tag: string;
 
   @Field({ nullable: true })
   @Column({ type: 'varchar', length: 17, name: 'mac_address', nullable: true })

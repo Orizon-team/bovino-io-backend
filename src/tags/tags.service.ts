@@ -1,4 +1,4 @@
-import { Injectable, ConflictException, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Tag } from './tag.entity';
@@ -41,10 +41,6 @@ export class TagsService {
       .innerJoin('Cows', 'cow', 'cow.tag_id = tag.id')
       .where('cow.id = :id_vaca', { id_vaca })
       .getOne();
-  }
-
-  async findByIdTag(id_tag: string): Promise<Tag | null> {
-    return this.tagsRepo.findOne({ where: { id_tag } });
   }
 
   async findByMacAddress(mac: string): Promise<Tag | null> {

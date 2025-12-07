@@ -48,16 +48,12 @@ export class VacasService {
     if (!payload.name) throw new ConflictException('name is required');
     if (!payload.ear_tag) throw new ConflictException('ear_tag is required');
 
-    // Ensure the Tag exists (try PK first, then id_tag)
+    // Ensure the Tag exists (PK only)
     const tagRepo = this.vacasRepo.manager.getRepository('Tag');
-    let tag = await tagRepo.findOne({ where: { id: Number(tagId) } });
-    if (!tag) {
-      // try matching id_tag (string)
-      tag = await tagRepo.findOne({ where: { id_tag: String(tagId) } });
-    }
+    const tag = await tagRepo.findOne({ where: { id: Number(tagId) } });
     if (!tag) throw new NotFoundException('Tag no encontrado');
 
-    // attach relation - use full Tag entity so GraphQL fields like id_tag are available
+    // attach relation - use full Tag entity so GraphQL fields are available
     payload.tag = tag;
 
     const v = this.vacasRepo.create(payload as Partial<Vaca>);
@@ -143,10 +139,9 @@ export class VacasService {
     }
 
     if (raw.tag_id !== undefined) {
-      // find tag by PK or id_tag
+      // find tag by PK
       const tagRepo = this.vacasRepo.manager.getRepository('Tag');
-      let tag = await tagRepo.findOne({ where: { id: Number(raw.tag_id) } });
-      if (!tag) tag = await tagRepo.findOne({ where: { id_tag: String(raw.tag_id) } });
+      const tag = await tagRepo.findOne({ where: { id: Number(raw.tag_id) } });
       if (!tag) throw new NotFoundException('Tag no encontrado');
       v.tag = tag as any;
     }

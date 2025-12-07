@@ -4,9 +4,11 @@ import { IsOptional, IsInt, IsNumber, IsBoolean } from 'class-validator';
 @InputType()
 export class CreateDeteccionInput {
   @Field(() => Int)
-  id_tag: number;
+  @IsInt()
+  tag_id: number;
 
   @Field(() => Int)
+  @IsInt()
   id_device: number;
 
   @Field({ nullable: true })

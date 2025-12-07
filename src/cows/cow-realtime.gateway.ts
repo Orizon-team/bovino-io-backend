@@ -13,7 +13,6 @@ interface UserSubscribePayload {
 
 export interface CowRegistrationRequestPayload {
   tag_id: number;
-  id_tag?: string | null;
   mac_address?: string | null;
   zone?: { id: number; name: string };
   user: { id_user: number; name?: string | null; email?: string | null };
@@ -22,7 +21,6 @@ export interface CowRegistrationRequestPayload {
 
 export interface CowRegistrationTimeoutPayload {
   tag_id: number;
-  id_tag?: string | null;
   message: string;
 }
 

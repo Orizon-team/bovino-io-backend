@@ -54,7 +54,6 @@ export class VacasResolver {
     @Args('zone_name', { type: () => String, nullable: true }) zone_name?: string,
     @Args('user_name', { type: () => String, nullable: true }) user_name?: string,
     @Args('user_email', { type: () => String, nullable: true }) user_email?: string,
-    @Args('id_tag', { type: () => String, nullable: true }) id_tag?: string,
     @Args('mac_address', { type: () => String, nullable: true }) mac_address?: string,
     @Args('redirect_url', { type: () => String, nullable: true }) redirect_url?: string,
   ) {
@@ -70,7 +69,6 @@ export class VacasResolver {
 
     const payload: CowRegistrationRequestPayload = {
       tag_id: tag.id,
-      id_tag: tag.id_tag ?? id_tag ?? null,
       mac_address: tag.mac_address ?? mac_address ?? null,
       zone: { id: zone_id, name: finalZoneName },
       user: { id_user, name: finalUserName, email: finalUserEmail },

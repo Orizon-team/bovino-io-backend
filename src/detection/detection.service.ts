@@ -16,7 +16,7 @@ export class DeteccionesService {
 
     // resolve tag
     const tagRepo = this.repo.manager.getRepository('Tag');
-    const tag = await tagRepo.findOne({ where: { id: Number(raw.id_tag) } });
+    const tag = await tagRepo.findOne({ where: { id: Number(raw.tag_id) } });
     if (!tag) throw new NotFoundException('Tag no encontrado');
     payload.tag = tag as any;
 
@@ -67,9 +67,9 @@ export class DeteccionesService {
   async update(id: number, input: Partial<Deteccion> & any): Promise<Deteccion> {
     const det = await this.findOneById(id);
 
-    if (input.id_tag !== undefined) {
+    if (input.tag_id !== undefined) {
       const tagRepo = this.repo.manager.getRepository('Tag');
-      const tag = await tagRepo.findOne({ where: { id: Number(input.id_tag) } });
+      const tag = await tagRepo.findOne({ where: { id: Number(input.tag_id) } });
       if (!tag) throw new NotFoundException('Tag no encontrado');
       det.tag = tag as any;
     }

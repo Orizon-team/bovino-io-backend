@@ -8,8 +8,6 @@ export class CreateTagInput {
   @Field({ nullable: true })
   @IsOptional()
   @IsString()
-  id_tag?: string;
-
   @Field({ nullable: true })
   @IsOptional()
   @IsString()
