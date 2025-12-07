@@ -15,9 +15,9 @@ export interface CowRegistrationRequestPayload {
   tag_id: number;
   id_tag?: string | null;
   mac_address?: string | null;
-  zone: { id: number; name: string };
+  zone?: { id: number; name: string };
   user: { id_user: number; name?: string | null; email?: string | null };
-  redirect_url?: string;
+  redirect_url?: string | null;
 }
 
 export interface CowRegistrationTimeoutPayload {
@@ -104,11 +104,12 @@ export class CowRealtimeGateway {
       this.logger.warn(`emitRegistrationRequest ignorado: id_user inválido (${userId})`);
       return;
     }
-    const enrichedPayload: CowRegistrationRequestPayload = { ...payload };
-    if (!enrichedPayload.redirect_url && this.registrationUrl) {
-      enrichedPayload.redirect_url = this.registrationUrl;
-    }
-    this.server.to(this.userRoom(normalizedUserId)).emit('cow.registration.request', enrichedPayload);
+    const socketPayload: CowRegistrationRequestPayload = {
+      tag_id: payload.tag_id,
+      user: { id_user: payload.user.id_user },
+      redirect_url: null,
+    };
+    this.server.to(this.userRoom(normalizedUserId)).emit('cow.registration.request', socketPayload);
   }
 
   emitRegistrationTimeout(userId: number, payload: CowRegistrationTimeoutPayload) {
