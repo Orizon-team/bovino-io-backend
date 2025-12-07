@@ -12,6 +12,7 @@ async function bootstrap() {
     process.env.FRONTEND_ORIGIN,
     process.env.BACKEND_URL,
     'http://localhost:5173',
+    'http://localhost:5174',
     'http://192.168.55.2:5173',
     'https://y9wyqh-ip-209-178-128-69.tunnelmole.net',
     'http://y9wyqh-ip-209-178-128-69.tunnelmole.net',
