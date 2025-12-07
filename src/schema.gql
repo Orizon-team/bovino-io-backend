@@ -142,6 +142,7 @@ type Mutation {
   deleteUser(id: Int!): Boolean!
   deleteVaca(id: Int!): Boolean!
   deleteZone(id: Int!): Boolean!
+  resetAllTagsStatus: Int!
   login(input: LoginUserInput!): User
 
   """Temporal: dispara manualmente cow.registration.request"""

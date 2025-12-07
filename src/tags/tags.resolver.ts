@@ -32,4 +32,9 @@ export class TagsResolver {
   deleteTag(@Args('id', { type: () => Int }) id: number) {
     return this.tagsService.remove(id);
   }
+
+  @Mutation(() => Int, { description: 'Establece todos los Tags con status unregistered.' })
+  resetAllTagsStatus() {
+    return this.tagsService.setAllStatuses('unregistered');
+  }
 }

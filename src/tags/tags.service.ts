@@ -80,6 +80,16 @@ export class TagsService {
     throw new NotFoundException('Tag no encontrado');
   }
 
+  async setAllStatuses(status: string = 'unregistered'): Promise<number> {
+    const normalized = status?.trim() || 'unregistered';
+    const result = await this.tagsRepo
+      .createQueryBuilder()
+      .update(Tag)
+      .set({ status: normalized })
+      .execute();
+    return result.affected ?? 0;
+  }
+
   private normalizeMac(mac: string): string {
     const trimmed = mac.trim().toUpperCase();
     const hexOnly = trimmed.replace(/[^0-9A-F]/g, '');

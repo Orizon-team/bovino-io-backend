@@ -84,32 +84,24 @@ export class DetectionsIngestService {
     const results: Deteccion[] = [];
 
     for (const item of payload.detections) {
-      const tagIdStr = String(item.tag_id ?? item.tagId ?? '');
-      if (!tagIdStr) {
-        this.logger.warn('Skipping detection without tag_id');
+      const tagMacRaw = item.mac_address ?? item.macAddress ?? item.tag_mac ?? item.tagMac;
+      const tagMac = typeof tagMacRaw === 'string' ? tagMacRaw.trim() : '';
+      if (!tagMac) {
+        this.logger.warn('Skipping detection without tag mac_address');
         continue;
       }
 
-      const tagIdValue = Number(tagIdStr);
-      if (!Number.isFinite(tagIdValue)) {
-        this.logger.warn(`Skipping detection with non-numeric tag_id ${tagIdStr}`);
+      const tag = await this.tagsService.findByMacAddress(tagMac);
+      if (!tag) {
+        this.logger.warn(`Tag with mac_address ${tagMac} not found while processing detection; skipping entry.`);
         continue;
       }
 
-      let tag;
-      try {
-        tag = await this.tagsService.findOneById(tagIdValue);
-      } catch (err) {
-        if (err instanceof NotFoundException) {
-          this.logger.warn(`Tag ${tagIdValue} not found while processing detection; skipping entry.`);
-          continue;
-        }
-        throw err;
-      }
-
-      const deviceLocation = item.device_location ?? item.deviceLocation;
+      const deviceLocationRaw = item.device_location ?? item.deviceLocation ?? payload.zone_name ?? payload.zoneName;
+      const deviceLocation = typeof deviceLocationRaw === 'string' ? deviceLocationRaw.trim() : '';
       if (deviceLocation) {
-        tag = await this.tagsService.update(tag.id, { current_location: deviceLocation } as any);
+        await this.tagsService.update(tag.id, { current_location: deviceLocation } as any);
+        tag.current_location = deviceLocation;
       }
 
       const firstSeenValue = item.first_seen ?? item.firstSeen;
@@ -140,7 +132,7 @@ export class DetectionsIngestService {
           await this.safeEmitCowUpdate(prefContext.cow.id);
         }
       } catch (prefError) {
-        this.logger.warn(`Failed to update preference for tag ${tagIdStr}: ${prefError instanceof Error ? prefError.message : prefError}`);
+        this.logger.warn(`Failed to update preference for mac ${tagMac}: ${prefError instanceof Error ? prefError.message : prefError}`);
       }
       results.push(saved);
     }
