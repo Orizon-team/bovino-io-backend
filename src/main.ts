@@ -17,6 +17,7 @@ async function bootstrap() {
     'https://y9wyqh-ip-209-178-128-69.tunnelmole.net',
     'http://y9wyqh-ip-209-178-128-69.tunnelmole.net',
     'https://0prskbpr-5173.use2.devtunnels.ms',
+    'https://bovino-io-frontend-tya4.onrender.com',
   ].filter(isNonEmptyString);
 
   const extraOrigins = (process.env.CORS_ALLOWED_ORIGINS ?? '')
