@@ -361,7 +361,7 @@ export class MqttDetectionsListener implements OnModuleInit, OnModuleDestroy {
   private async notifyMultipleUnregisteredTags(userId: number | undefined, zone: Zone | null, count: number) {
     if (!userId) return;
 
-    const cooldownMinutes = Number(process.env.TAG_MULTI_ALERT_COOLDOWN_MINUTES ?? 5);
+    const cooldownMinutes = Number(process.env.TAG_MULTI_ALERT_COOLDOWN_MINUTES ?? 60);
     if (!this.canSendTagAlert(userId, cooldownMinutes)) {
       this.logger.debug(`Cooldown activo; se omite push de tags múltiples para usuario ${userId}.`);
       return;
@@ -400,7 +400,7 @@ export class MqttDetectionsListener implements OnModuleInit, OnModuleDestroy {
   }
 
   private canSendTagAlert(userId: number, cooldownMinutes: number) {
-    const minutes = Number.isFinite(cooldownMinutes) && cooldownMinutes > 0 ? cooldownMinutes : 5;
+    const minutes = Number.isFinite(cooldownMinutes) && cooldownMinutes > 0 ? cooldownMinutes : 60;
     const cooldownMs = minutes * 60 * 1000;
     const lastSent = this.multiTagNotificationTimestamps.get(userId);
     if (!lastSent) {
