@@ -7,6 +7,7 @@ import { EventosService } from '../event/event.service';
 import { CowRealtimeGateway, CowRegistrationRequestPayload } from '../cows/cow-realtime.gateway';
 import { Zone } from '../zone/zone.entity';
 import { Tag } from '../tags/tag.entity';
+import { NotificationsService } from '../notifications/notifications.service';
 
 @Injectable()
 export class MqttDetectionsListener implements OnModuleInit, OnModuleDestroy {
@@ -22,6 +23,7 @@ export class MqttDetectionsListener implements OnModuleInit, OnModuleDestroy {
     private readonly zoneService: ZoneService,
     private readonly eventosService: EventosService,
     private readonly cowGateway: CowRealtimeGateway,
+    private readonly notificationsService: NotificationsService,
   ) {}
 
   onModuleInit() {
@@ -208,6 +210,7 @@ export class MqttDetectionsListener implements OnModuleInit, OnModuleDestroy {
         'Se detectaron múltiples tags sin registrar al mismo tiempo. Debe haber solo un tag no registrado encendido para iniciar el registro.',
         'TAG_MULTI_UNREGISTERED',
       );
+      await this.notifyMultipleUnregisteredTags(userId, zone, unregisteredTags.length);
       return;
     }
 
@@ -351,6 +354,35 @@ export class MqttDetectionsListener implements OnModuleInit, OnModuleDestroy {
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       this.logger.error(`No se pudo registrar evento de error (${code}) para el usuario ${userId}: ${message}`);
+    }
+  }
+
+  private async notifyMultipleUnregisteredTags(userId: number | undefined, zone: Zone | null, count: number) {
+    if (!userId) return;
+
+    const zoneLabel = zone?.name?.trim() || (zone ? `Zona ${zone.id}` : 'zona sin nombre');
+
+    try {
+      await this.notificationsService.sendNotification(
+        {
+          title: 'Atención: múltiples tags sin registrar',
+          body: `Se detectaron ${count} tags sin registrar encendidos en ${zoneLabel}. Apaga los adicionales e intenta nuevamente el registro.`,
+          icon: '/pwa-192.svg',
+          badge: '/pwa-192.svg',
+          tag: 'tag-registration-alert',
+          data: {
+            url: '/dashboard/cattle',
+            type: 'tag_multi_unregistered',
+            zone_id: zone?.id ?? null,
+            zone_name: zoneLabel,
+            count,
+          },
+        },
+        userId,
+      );
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      this.logger.warn(`No se pudo enviar push de tags múltiples para el usuario ${userId}: ${message}`);
     }
   }
 }

@@ -8,6 +8,7 @@ import { ZoneService } from '../zone/zone.service';
 import { Zone } from '../zone/zone.entity';
 import { Preferencia } from '../preference/preference.entity';
 import { Vaca } from '../cows/cow.entity';
+import { Tag } from '../tags/tag.entity';
 import { CowRealtimeGateway } from '../cows/cow-realtime.gateway';
 
 @Injectable()
@@ -99,16 +100,26 @@ export class DetectionsIngestService {
 
       const deviceLocationRaw = item.device_location ?? item.deviceLocation ?? payload.zone_name ?? payload.zoneName;
       const deviceLocation = typeof deviceLocationRaw === 'string' ? deviceLocationRaw.trim() : '';
-      if (deviceLocation) {
-        await this.tagsService.update(tag.id, { current_location: deviceLocation } as any);
-        tag.current_location = deviceLocation;
-      }
 
       const firstSeenValue = item.first_seen ?? item.firstSeen;
       const lastSeenValue = item.last_seen ?? item.lastSeen;
 
       const firstSeen = this.toDate(firstSeenValue);
       const lastSeen = this.toDate(lastSeenValue);
+      const observationTimestamp = lastSeen ?? firstSeen ?? new Date();
+
+      const tagPatch: Partial<Tag> = {};
+      if (deviceLocation) {
+        tagPatch.current_location = deviceLocation;
+        tag.current_location = deviceLocation;
+      }
+      if (observationTimestamp) {
+        tagPatch.last_transmission = observationTimestamp;
+        tag.last_transmission = observationTimestamp;
+      }
+      if (Object.keys(tagPatch).length > 0) {
+        await this.tagsService.update(tag.id, tagPatch);
+      }
 
       const distance = item.distance ?? item.distancia;
       const rssi = item.rssi ?? item.intensidad_senal ?? item.intensidadSenal;

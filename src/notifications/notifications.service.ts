@@ -3,6 +3,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as webpush from 'web-push';
 import { PushSubscription } from './push-subscription.entity';
+import { EventosService } from '../event/event.service';
+import { CreateEventoInput } from '../event/dto/create-event.input';
 
 interface SubscriptionKeys {
   p256dh: string;
@@ -21,6 +23,7 @@ export class NotificationsService {
   constructor(
     @InjectRepository(PushSubscription)
     private readonly subscriptionRepo: Repository<PushSubscription>,
+    private readonly eventosService: EventosService,
   ) {
     this.configureVapid();
   }
@@ -91,6 +94,11 @@ export class NotificationsService {
       }
     }
 
+    if (success > 0) {
+      const targetUserIds = this.resolveEventUserIds(userId, subscriptions);
+      await Promise.all(targetUserIds.map((targetUserId) => this.recordNotificationEvent(payload, targetUserId)));
+    }
+
     return { success, failed };
   }
 
@@ -113,5 +121,96 @@ export class NotificationsService {
   async removeSubscription(endpoint: string): Promise<boolean> {
     const result = await this.subscriptionRepo.delete({ endpoint });
     return (result.affected ?? 0) > 0;
+  }
+
+  private resolveEventUserIds(explicitUserId: number | undefined, subscriptions: PushSubscription[]): Array<number | undefined> {
+    if (typeof explicitUserId === 'number') {
+      return [explicitUserId];
+    }
+
+    const unique = new Set<number>();
+    for (const sub of subscriptions) {
+      if (typeof sub.id_user === 'number') {
+        unique.add(sub.id_user);
+      }
+    }
+
+    return unique.size > 0 ? Array.from(unique) : [undefined];
+  }
+
+  private async recordNotificationEvent(rawPayload: unknown, userId?: number) {
+    try {
+      const normalized = this.normalizePayloadForEvent(rawPayload);
+      const now = new Date();
+      const iso = now.toISOString();
+      const [date, timeWithMs] = iso.split('T');
+      const time = timeWithMs ? timeWithMs.slice(0, 8) : undefined;
+
+      const input: CreateEventoInput = {
+        Event_Type: normalized.type,
+        Event_Description: normalized.description,
+        Event_Code: normalized.code,
+        id_user: userId,
+        id_cow: normalized.cowId,
+        tag_id: normalized.tagId,
+        date,
+        time,
+      };
+
+      await this.eventosService.create(input);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      this.logger.warn(`Failed to persist notification event: ${message}`);
+    }
+  }
+
+  private normalizePayloadForEvent(rawPayload: unknown) {
+    const fallback = {
+      type: 'notification',
+      description: 'Notificación enviada',
+      code: undefined as string | undefined,
+      cowId: undefined as number | undefined,
+      tagId: undefined as number | undefined,
+    };
+
+    if (!rawPayload || typeof rawPayload !== 'object') {
+      if (typeof rawPayload === 'string' && rawPayload.trim().length > 0) {
+        fallback.description = rawPayload.trim();
+      }
+      return fallback;
+    }
+
+    const payload = rawPayload as Record<string, any>;
+    const data = payload.data && typeof payload.data === 'object' ? payload.data : {};
+    const tag = typeof payload.tag === 'string' && payload.tag.trim().length > 0 ? payload.tag.trim() : undefined;
+    const typeCandidate = typeof data.type === 'string' && data.type.trim().length > 0 ? data.type.trim() : undefined;
+
+    return {
+      type: typeCandidate ?? tag ?? fallback.type,
+      description: this.pickDescription(payload) ?? fallback.description,
+      code: tag,
+      cowId: this.toOptionalNumber(data.cowId ?? data.id_cow),
+      tagId: this.toOptionalNumber(data.tagId ?? data.tag_id),
+    };
+  }
+
+  private pickDescription(payload: Record<string, any>): string | undefined {
+    const body = typeof payload.body === 'string' && payload.body.trim().length > 0 ? payload.body.trim() : undefined;
+    if (body) {
+      return body;
+    }
+    const title = typeof payload.title === 'string' && payload.title.trim().length > 0 ? payload.title.trim() : undefined;
+    return title;
+  }
+
+  private toOptionalNumber(value: unknown): number | undefined {
+    if (typeof value === 'number' && Number.isFinite(value)) {
+      return value;
+    }
+    if (typeof value === 'string' && value.trim().length > 0) {
+      const parsed = Number(value.trim());
+      return Number.isNaN(parsed) ? undefined : parsed;
+    }
+    return undefined;
   }
 }
