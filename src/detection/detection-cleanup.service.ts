@@ -44,7 +44,7 @@ export class DetectionCleanupService implements OnModuleInit, OnModuleDestroy {
 
   private async detectOutOfRangeCows() {
     const outOfRangeMinutes = this.resolveMinutes(process.env.COW_OUT_OF_RANGE_MINUTES, 3);
-    const cooldownMinutes = this.resolveMinutes(process.env.COW_OUT_OF_RANGE_COOLDOWN_MINUTES, 60);
+    const cooldownMinutes = this.resolveMinutes(process.env.COW_OUT_OF_RANGE_COOLDOWN_MINUTES, 5);
     const threshold = new Date(Date.now() - outOfRangeMinutes * 60 * 1000);
 
     try {

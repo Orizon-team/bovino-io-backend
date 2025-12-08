@@ -16,6 +16,7 @@ export class MqttDetectionsListener implements OnModuleInit, OnModuleDestroy {
   private detectionTopic?: string;
   private registerTopic?: string;
   private readonly processingTimers = new Map<number, NodeJS.Timeout>();
+  private readonly multiTagNotificationTimestamps = new Map<number, number>();
 
   constructor(
     private readonly ingestService: DetectionsIngestService,
@@ -360,6 +361,12 @@ export class MqttDetectionsListener implements OnModuleInit, OnModuleDestroy {
   private async notifyMultipleUnregisteredTags(userId: number | undefined, zone: Zone | null, count: number) {
     if (!userId) return;
 
+    const cooldownMinutes = Number(process.env.TAG_MULTI_ALERT_COOLDOWN_MINUTES ?? 5);
+    if (!this.canSendTagAlert(userId, cooldownMinutes)) {
+      this.logger.debug(`Cooldown activo; se omite push de tags múltiples para usuario ${userId}.`);
+      return;
+    }
+
     const zoneLabel = zone?.name?.trim() || (zone ? `Zona ${zone.id}` : 'zona sin nombre');
 
     try {
@@ -380,6 +387,7 @@ export class MqttDetectionsListener implements OnModuleInit, OnModuleDestroy {
         },
         userId,
       );
+      this.multiTagNotificationTimestamps.set(userId, Date.now());
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       this.logger.warn(`No se pudo enviar push de tags múltiples para el usuario ${userId}: ${message}`);
@@ -389,5 +397,15 @@ export class MqttDetectionsListener implements OnModuleInit, OnModuleDestroy {
   private resolveEventTypeForCode(code: string) {
     const criticalCodes = new Set(['TAG_REG_CONFLICT', 'TAG_REG_TIMEOUT', 'TAG_MULTI_UNREGISTERED']);
     return criticalCodes.has(code) ? 'critical' : 'warning';
+  }
+
+  private canSendTagAlert(userId: number, cooldownMinutes: number) {
+    const minutes = Number.isFinite(cooldownMinutes) && cooldownMinutes > 0 ? cooldownMinutes : 5;
+    const cooldownMs = minutes * 60 * 1000;
+    const lastSent = this.multiTagNotificationTimestamps.get(userId);
+    if (!lastSent) {
+      return true;
+    }
+    return Date.now() - lastSent >= cooldownMs;
   }
 }
