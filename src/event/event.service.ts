@@ -12,7 +12,7 @@ export class EventosService {
     const raw: any = input as any;
     const payload: Partial<Evento> = {};
 
-    if (raw.Event_Type !== undefined) payload.Event_Type = raw.Event_Type;
+    payload.Event_Type = this.normalizeEventType(raw.Event_Type);
     if (raw.Event_Description !== undefined) payload.Event_Description = raw.Event_Description;
   // accept Event_Code and English/Spanish date/time keys
   if (raw.Event_Code !== undefined) payload.Event_Code = raw.Event_Code;
@@ -77,7 +77,9 @@ export class EventosService {
     const e = await this.findOneById(id);
     if (!e) throw new Error('Evento no encontrado');
 
-    if (input.Event_Type !== undefined) e.Event_Type = input.Event_Type;
+    if (input.Event_Type !== undefined) {
+      e.Event_Type = this.normalizeEventType(input.Event_Type);
+    }
   if (input.Event_Description !== undefined) e.Event_Description = input.Event_Description;
   if (input.Event_Code !== undefined) e.Event_Code = input.Event_Code as any;
   if (input.event_code !== undefined) e.Event_Code = input.event_code as any;
@@ -121,5 +123,24 @@ export class EventosService {
       .execute();
 
     return result.affected ?? 0;
+  }
+
+  private normalizeEventType(value: unknown): 'critical' | 'warning' | 'success' {
+    if (typeof value === 'string') {
+      const normalized = value.trim().toLowerCase();
+      if (normalized === 'critical' || normalized === 'warning' || normalized === 'success') {
+        return normalized as 'critical' | 'warning' | 'success';
+      }
+
+      if (normalized === 'error' || normalized === 'danger') {
+        return 'warning';
+      }
+
+      if (normalized === 'info' || normalized === 'test' || normalized === 'ok') {
+        return 'success';
+      }
+    }
+
+    return 'warning';
   }
 }

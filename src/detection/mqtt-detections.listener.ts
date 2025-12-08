@@ -341,7 +341,7 @@ export class MqttDetectionsListener implements OnModuleInit, OnModuleDestroy {
     const now = new Date();
     const isoDate = now.toISOString();
     const input = {
-      Event_Type: 'error',
+      Event_Type: this.resolveEventTypeForCode(code),
       Event_Description: description,
       Event_Code: code,
       id_user: userId,
@@ -384,5 +384,10 @@ export class MqttDetectionsListener implements OnModuleInit, OnModuleDestroy {
       const message = err instanceof Error ? err.message : String(err);
       this.logger.warn(`No se pudo enviar push de tags múltiples para el usuario ${userId}: ${message}`);
     }
+  }
+
+  private resolveEventTypeForCode(code: string) {
+    const criticalCodes = new Set(['TAG_REG_CONFLICT', 'TAG_REG_TIMEOUT', 'TAG_MULTI_UNREGISTERED']);
+    return criticalCodes.has(code) ? 'critical' : 'warning';
   }
 }

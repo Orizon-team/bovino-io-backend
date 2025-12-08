@@ -185,8 +185,10 @@ export class NotificationsService {
     const tag = typeof payload.tag === 'string' && payload.tag.trim().length > 0 ? payload.tag.trim() : undefined;
     const typeCandidate = typeof data.type === 'string' && data.type.trim().length > 0 ? data.type.trim() : undefined;
 
+    const eventType = this.resolveEventType(typeCandidate, tag);
+
     return {
-      type: typeCandidate ?? tag ?? fallback.type,
+      type: eventType,
       description: this.pickDescription(payload) ?? fallback.description,
       code: tag,
       cowId: this.toOptionalNumber(data.cowId ?? data.id_cow),
@@ -212,5 +214,24 @@ export class NotificationsService {
       return Number.isNaN(parsed) ? undefined : parsed;
     }
     return undefined;
+  }
+
+  private resolveEventType(dataType?: string, tag?: string) {
+    const normalizedType = dataType?.toLowerCase();
+    const normalizedTag = tag?.toLowerCase();
+
+    if (normalizedType === 'tag_multi_unregistered' || normalizedTag === 'tag-registration-alert') {
+      return 'critical';
+    }
+
+    if (normalizedType === 'cow_out_of_range' || normalizedTag?.startsWith('cow-out-of-range')) {
+      return 'warning';
+    }
+
+    if (normalizedType === 'test' || normalizedTag === 'test-notification') {
+      return 'success';
+    }
+
+    return 'success';
   }
 }
